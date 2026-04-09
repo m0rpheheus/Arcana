@@ -31,629 +31,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-<style>
-/* =============================================
-   VARIABLES & THEMES
-============================================= */
-:root {
-  color-scheme: dark light;
-  --bg-primary:    #1a0e0e;
-  --bg-secondary:  #231210;
-  --bg-tertiary:   #2d1a17;
-  --bg-card:       #1f1210;
-  --bg-card-hover: #2a1915;
-  --text-primary:  #f2ddc8;
-  --text-secondary:#c9a882;
-  --text-muted:    #8a6a52;
-  --accent-peach:  #e8b48a;
-  --accent-orange: #d4722a;
-  --accent-wine:   #8b2c2c;
-  --border-subtle: rgba(232,180,138,.12);
-  --border-accent: rgba(232,180,138,.35);
-  --card-back:     linear-gradient(145deg,#3d1c18 0%,#1a0e0e 50%,#3d1c18 100%);
-  --nav-height:    64px;
-  --t:             .3s cubic-bezier(.4,0,.2,1);
-  --t-slow:        .6s cubic-bezier(.4,0,.2,1);
-  --safe-b:        env(safe-area-inset-bottom,0px);
-}
-[data-theme="light"] {
-  --bg-primary:    #f5ede3;
-  --bg-secondary:  #ede0d0;
-  --bg-tertiary:   #e5d0ba;
-  --bg-card:       #f0e6d8;
-  --bg-card-hover: #e8d5c0;
-  --text-primary:  #2a1410;
-  --text-secondary:#6b3a22;
-  --text-muted:    #9a6a48;
-  --accent-peach:  #c96030;
-  --accent-orange: #b84a12;
-  --accent-wine:   #8b2c2c;
-  --border-subtle: rgba(107,58,34,.15);
-  --border-accent: rgba(107,58,34,.4);
-  --card-back:     linear-gradient(145deg,#c9a882 0%,#e5d0ba 50%,#c9a882 100%);
-}
-
-/* =============================================
-RESET & BASE
-============================================= */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;background-color:#1a0e0e !important;color:#f2ddc8}
-[data-theme=“light”] html{background-color:#f5ede3 !important;color:#2a1410}
-body{
-font-family:‘DM Sans’,sans-serif;
-background-color:var(–bg-primary) !important;color:var(–text-primary);
-height:100vh;overflow:hidden;
-transition:background-color var(–t-slow),color var(–t-slow);
--webkit-tap-highlight-color:transparent;
-}
-body.scrollable{height:auto;overflow-y:auto !important;overflow-x:hidden}
-
-body::before{
-content:’’;position:fixed;inset:0;pointer-events:none;z-index:0;
-background:
-radial-gradient(ellipse 80% 60% at 20% 10%,rgba(139,44,44,.18) 0%,transparent 60%),
-radial-gradient(ellipse 60% 50% at 80% 90%,rgba(212,114,42,.12) 0%,transparent 60%),
-radial-gradient(ellipse 40% 40% at 50% 50%,rgba(45,26,23,.3)   0%,transparent 80%);
-}
-[data-theme=“light”] body::before{
-background:
-radial-gradient(ellipse 80% 60% at 20% 10%,rgba(232,180,138,.35) 0%,transparent 60%),
-radial-gradient(ellipse 60% 50% at 80% 90%,rgba(212,114,42,.2)   0%,transparent 60%),
-radial-gradient(ellipse 40% 40% at 50% 50%,rgba(200,150,100,.15) 0%,transparent 80%);
-}
-body::after{
-content:’’;position:fixed;inset:0;opacity:.03;pointer-events:none;z-index:0;
-background-image:url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’/%3E%3C/svg%3E”);
-}
-
-/* =============================================
-NAV
-============================================= */
-nav{
-position:fixed;top:0;left:0;right:0;height:var(–nav-height);
-display:flex;align-items:center;justify-content:space-between;
-padding:0 32px;
-background:rgba(26,14,14,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-border-bottom:1px solid var(–border-subtle);z-index:200;
-transition:background var(–t-slow);
-}
-[data-theme=“light”] nav{background:rgba(240,230,216,.75)}
-.nav-brand{
-font-family:‘Playfair Display’,serif;font-size:1.3rem;font-weight:700;
-letter-spacing:.08em;color:var(–accent-peach);text-decoration:none;
-display:flex;align-items:center;gap:9px;
-}
-.nav-brand-sym{
-width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;
-border:1.5px solid var(–accent-orange);border-radius:50%;font-size:.9rem;opacity:.9;
-}
-.nav-links{display:flex;align-items:center;gap:4px;list-style:none;flex-shrink:0}
-.nav-links a{
-font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;
-color:var(–text-secondary);padding:6px 10px;border-radius:4px;
-border:1px solid transparent;transition:all var(–t);cursor:pointer;
-white-space:nowrap;   /* KEY: never break a link onto two lines */
-}
-.nav-links a:hover,.nav-links a.active{color:var(–accent-peach);border-color:var(–border-accent);background:rgba(232,180,138,.06)}
-.nav-links a.active{background:rgba(212,114,42,.1);border-color:rgba(212,114,42,.3);color:var(–accent-orange)}
-.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-/* On small phones shorten the nav labels via data attributes */
-@media(max-width:520px){
-.nav-links a[data-short]::before{content:attr(data-short)}
-.nav-links a[data-short] .nav-label{display:none}
-}
-.nav-btn{
-width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-background:none;border:1px solid var(–border-accent);border-radius:50%;
-cursor:pointer;color:var(–accent-peach);font-size:.95rem;transition:all var(–t);
-}
-.nav-btn:hover{background:rgba(232,180,138,.1);border-color:var(–accent-peach)}
-#themeToggle:hover{transform:rotate(20deg)}
-
-/* =============================================
-PAGE SYSTEM
-============================================= */
-.page{display:none;min-height:100vh;padding-top:var(–nav-height);position:relative;z-index:1}
-.page.active{display:block}
-#page-reading{display:none;flex-direction:column;align-items:center;min-height:100vh;padding-top:var(–nav-height)}
-#page-reading.active{display:flex}
-
-.phase{display:none;width:100%;flex:1}
-.phase.active{display:flex;flex-direction:column;align-items:center}
-
-/* =============================================
-PHASE 1 — SHUFFLE SCREEN
-============================================= */
-#phase-shuffle{
-justify-content:center;text-align:center;
-padding:20px 24px 28px;gap:16px;
-/* Let content breathe — never clip buttons */
-min-height:0;
-overflow-y:auto;
-overflow-x:hidden;
-}
-.intro-eyebrow{font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;color:var(–accent-orange);opacity:.9}
-.intro-title{font-family:‘Playfair Display’,serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:700;color:var(–text-primary);line-height:1.15}
-.intro-title em{font-style:italic;color:var(–accent-peach)}
-.intro-sub{font-family:‘Cormorant Garamond’,serif;font-size:1.1rem;font-style:italic;color:var(–text-muted);max-width:400px;line-height:1.65}
-
-/* Stacked deck illustration */
-.deck-pile{position:relative;width:80px;height:120px;margin:0 auto;cursor:pointer}
-.deck-pile-card{
-position:absolute;width:72px;height:110px;border-radius:7px;
-background:var(–card-back);border:1px solid var(–border-accent);
-}
-.deck-pile-card:nth-child(1){transform:rotate(-4deg) translate(-6px,4px)}
-.deck-pile-card:nth-child(2){transform:rotate(-2deg) translate(-3px,2px)}
-.deck-pile-card:nth-child(3){transform:rotate(0deg);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:rgba(232,180,138,.2)}
-.deck-pile-card:nth-child(3)::after{content:‘✦’}
-
-@keyframes shiver{
-0%,100%{transform:rotate(0) translateX(0)}
-15%{transform:rotate(-3deg) translateX(-5px)}
-30%{transform:rotate(3deg) translateX(5px)}
-45%{transform:rotate(-2deg) translateX(-3px)}
-60%{transform:rotate(2deg) translateX(3px)}
-75%{transform:rotate(-2deg) translateX(-4px)}
-90%{transform:rotate(1deg) translateX(2px)}
-}
-.deck-pile.shuffling .deck-pile-card{animation:shiver .65s ease}
-.deck-pile.shuffling .deck-pile-card:nth-child(1){animation-delay:.06s}
-.deck-pile.shuffling .deck-pile-card:nth-child(2){animation-delay:.12s}
-
-.shuffle-btn{
-padding:14px 44px;
-background:linear-gradient(135deg,var(–accent-orange),var(–accent-wine));
-border:none;border-radius:50px;font-family:‘DM Sans’,sans-serif;font-size:.82rem;
-font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#fff;
-cursor:pointer;transition:all var(–t);box-shadow:0 4px 20px rgba(139,44,44,.3);
-}
-.shuffle-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(139,44,44,.45)}
-.shuffle-btn:active{transform:translateY(0)}
-.shuffle-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
-
-/* =============================================
-PHASE 2 — FAN DECK
-============================================= */
-#phase-fan{
-justify-content:flex-start;padding:24px 0 0;
-position:relative;overflow:hidden;
-/* fills remaining height after nav */
-height:calc(100vh - var(–nav-height));
-max-height:calc(100vh - var(–nav-height));
-}
-.fan-header{text-align:center;padding:0 24px 14px;width:100%}
-.fan-header .eyebrow{font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(–accent-orange);margin-bottom:6px}
-.fan-header h2{font-family:‘Playfair Display’,serif;font-size:clamp(1.3rem,3vw,1.9rem);font-weight:700;color:var(–text-primary);margin-bottom:4px}
-.fan-header p{font-family:‘Cormorant Garamond’,serif;font-size:.95rem;font-style:italic;color:var(–text-muted)}
-
-.draw-pill{
-display:flex;align-items:center;gap:14px;padding:9px 20px;margin-bottom:12px;
-background:rgba(232,180,138,.06);border:1px solid var(–border-subtle);
-border-radius:50px;transition:all var(–t);flex-shrink:0;
-}
-.draw-pill.complete{background:rgba(212,114,42,.15);border-color:rgba(212,114,42,.4)}
-.draw-pill-label{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(–text-secondary)}
-.draw-pill-count{font-family:‘Playfair Display’,serif;font-size:1.25rem;font-weight:600;color:var(–accent-peach);min-width:50px;text-align:center}
-.draw-pips{display:flex;gap:4px}
-.draw-pip{width:7px;height:7px;border-radius:50%;background:var(–border-accent);transition:all var(–t)}
-.draw-pip.filled{background:var(–accent-orange);box-shadow:0 0 5px rgba(212,114,42,.6)}
-
-/* Fan stage — fills remaining space, no overflow */
-.fan-stage{
-position:relative;
-width:100%;
-flex:1;
-overflow:hidden;
-min-height:0;
-}
-
-/* Each fan card: absolutely positioned by JS */
-.fan-card{
-position:absolute;border-radius:7px;cursor:pointer;
-transform-origin:bottom center;
-transition:transform .22s cubic-bezier(.34,1.4,.64,1),box-shadow .22s ease,opacity .25s ease;
-user-select:none;-webkit-user-select:none;
-}
-.fan-card.drawn{opacity:.25;cursor:not-allowed;pointer-events:none}
-.fan-card.tapped{opacity:.55;pointer-events:none}
-.fan-card-face{
-width:100%;height:100%;border-radius:7px;
-background:var(–card-back);border:1px solid var(–border-accent);
-display:flex;flex-direction:column;align-items:center;justify-content:center;
-overflow:hidden;position:relative;transition:border-color var(–t);
-}
-.fan-card:hover:not(.drawn) .fan-card-face{border-color:var(–accent-orange)}
-.fan-card-face::before{
-content:’’;position:absolute;inset:5px;
-border:1px solid rgba(232,180,138,.18);border-radius:4px;pointer-events:none;
-}
-.fan-card-num{font-family:‘Playfair Display’,serif;font-size:.6rem;font-weight:600;color:rgba(232,180,138,.35);letter-spacing:.05em;position:relative;z-index:1}
-.fan-card-glyph{font-size:.8rem;color:rgba(232,180,138,.13);position:relative;z-index:1;margin-top:2px}
-
-/* =============================================
-PHASE 3 — SPREAD + READING
-============================================= */
-#phase-spread{
-padding:28px 16px 80px;align-items:center;gap:0;
-width:100%;
-overflow-x:hidden;
-}
-.spread-header{text-align:center;margin-bottom:28px}
-.spread-header .eyebrow{font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:var(–accent-orange);margin-bottom:8px}
-.spread-header h2{font-family:‘Playfair Display’,serif;font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:700;color:var(–text-primary)}
-.spread-header p{font-family:‘Cormorant Garamond’,serif;font-size:.95rem;font-style:italic;color:var(–text-muted);margin-top:5px}
-
-/* Celtic Cross Grid — CSS custom props set by JS for responsive sizing */
-.celtic-cross{
-display:grid;
-grid-template-columns:repeat(6,var(–ccw,88px));
-grid-template-rows:repeat(5,var(–cch,123px));
-gap:9px;
-margin-bottom:44px;
-}
-.cc-pos-3{grid-column:3;grid-row:2}
-.cc-pos-4{grid-column:3;grid-row:4}
-.cc-pos-5{grid-column:2;grid-row:3}
-.cc-pos-6{grid-column:4;grid-row:3}
-.cc-pos-7{grid-column:6;grid-row:5}
-.cc-pos-8{grid-column:6;grid-row:4}
-.cc-pos-9{grid-column:6;grid-row:3}
-.cc-pos-10{grid-column:6;grid-row:2}
-.cc-center{grid-column:3;grid-row:3;position:relative;width:var(–ccw,88px);height:var(–cch,123px)}
-.cc-center .cc-card{position:absolute;top:0;left:0}
-.cc-center .cc-card:first-child{z-index:2}
-.cc-center .cc-card:last-child{z-index:3}
-
-/* Spread card */
-.cc-card{
-width:var(–ccw,88px);height:var(–cch,123px);
-border-radius:8px;cursor:pointer;perspective:800px;
-transition:filter .2s ease;
-}
-.cc-card:hover{filter:brightness(1.12)}
-.cc-card.rotated{transform:rotate(90deg)}
-.cc-card.rotated:hover{filter:brightness(1.12)}
-
-/* 3D flip */
-.cc-inner{
-width:100%;height:100%;position:relative;
-transform-style:preserve-3d;
-transition:transform .7s cubic-bezier(.4,.2,.2,1);
-border-radius:8px;
-/* Force GPU layer — prevents ghost bleed-through on mobile */
-will-change:transform;
--webkit-transform:translateZ(0);
-transform:translateZ(0);
-}
-.cc-card.face-up .cc-inner{
--webkit-transform:rotateY(180deg);
-transform:rotateY(180deg);
-}
-
-/* Declare backface separately per element — combined rules fail on Android WebView */
-.cc-back{
-position:absolute;inset:0;border-radius:8px;
--webkit-backface-visibility:hidden;
-backface-visibility:hidden;
-background:var(–card-back);border:1px solid var(–border-accent);
-display:flex;align-items:center;justify-content:center;overflow:hidden;
-/* Extra insurance: hide when facing away */
--webkit-transform:rotateY(0deg);
-transform:rotateY(0deg);
-}
-.cc-back::before{content:’’;position:absolute;inset:5px;border:1px solid rgba(232,180,138,.18);border-radius:4px}
-.cc-back::after{content:‘✦’;font-size:1.2rem;color:rgba(232,180,138,.18)}
-.cc-pos-label{
-position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
-font-size:.52rem;letter-spacing:.13em;text-transform:uppercase;
-color:rgba(232,180,138,.35);white-space:nowrap;z-index:2;
-}
-.cc-front{
-position:absolute;inset:0;border-radius:8px;
--webkit-backface-visibility:hidden;
-backface-visibility:hidden;
-/* Starts face-down; rotateY(180deg) flips it into view */
--webkit-transform:rotateY(180deg);
-transform:rotateY(180deg);
-background:var(–bg-card);
-border:1px solid var(–border-accent);display:flex;flex-direction:column;overflow:hidden;
-}
-.cc-art{
-flex:1;display:flex;align-items:center;justify-content:center;
-background:linear-gradient(145deg,rgba(139,44,44,.2),rgba(45,26,23,.4));
-position:relative;overflow:hidden;
-}
-[data-theme=“light”] .cc-art{background:linear-gradient(145deg,rgba(200,150,100,.3),rgba(180,120,80,.2))}
-.cc-art::before{display:none}
-.cc-art img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.cc-art-sym{font-size:1.5rem;opacity:.55;position:relative;z-index:1}
-.cc-name{
-padding:5px 5px 5px;text-align:center;border-top:1px solid var(–border-subtle);
-font-family:‘Playfair Display’,serif;font-size:.55rem;font-weight:600;
-color:var(–accent-peach);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-
-/* =============================================
-READING PARAGRAPH BOX
-============================================= */
-.reading-box{
-width:100%;max-width:700px;
-background:var(–bg-secondary);border:1px solid var(–border-accent);
-border-radius:16px;overflow:hidden;margin-bottom:36px;
-}
-.reading-box-hd{
-padding:18px 26px 14px;border-bottom:1px solid var(–border-subtle);
-display:flex;align-items:center;gap:10px;
-}
-.reading-box-icon{font-size:1rem;opacity:.7}
-.reading-box-title{font-family:‘Playfair Display’,serif;font-size:.95rem;font-weight:600;color:var(–accent-peach);letter-spacing:.04em}
-.reading-box-body{padding:22px 26px 26px}
-.reading-para{
-font-family:‘Cormorant Garamond’,serif;font-size:1.15rem;line-height:1.85;
-color:var(–text-secondary);
-}
-.reading-para strong{color:var(–accent-peach)}
-.reading-para em{font-style:italic;color:var(–text-primary)}
-
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.cursor{
-display:inline-block;width:2px;height:1.05em;
-background:var(–accent-orange);vertical-align:text-bottom;
-animation:blink 1s step-start infinite;margin-left:2px;
-}
-/* Reading AI output sections */
-.reading-loading{
-display:flex;flex-direction:column;align-items:center;gap:14px;
-padding:32px 20px;text-align:center;
-}
-.reading-spinner{
-width:32px;height:32px;border-radius:50%;
-border:2px solid var(–border-subtle);
-border-top-color:var(–accent-orange);
-animation:spin .9s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-.reading-loading-text{
-font-family:‘Cormorant Garamond’,serif;font-size:.95rem;font-style:italic;
-color:var(–text-muted);letter-spacing:.04em;
-}
-
-.reading-section-divider{
-height:1px;background:var(–border-subtle);margin:22px 0;
-}
-.reading-section-label{
-font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;
-color:var(–text-muted);margin-bottom:14px;display:block;
-}
-
-/* Four domain bullet sections */
-.reading-bullets{
-display:flex;flex-direction:column;gap:16px;
-}
-.reading-bullet-row{
-display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:start;
-}
-.reading-bullet-icon{
-width:28px;height:28px;border-radius:50%;
-border:1px solid var(–border-accent);
-display:flex;align-items:center;justify-content:center;
-font-size:.8rem;flex-shrink:0;margin-top:1px;
-background:rgba(232,180,138,.05);
-}
-.reading-bullet-content{}
-.reading-bullet-label{
-font-family:‘Playfair Display’,serif;font-size:.8rem;font-weight:600;
-color:var(–accent-peach);letter-spacing:.04em;margin-bottom:3px;
-}
-.reading-bullet-text{
-font-family:‘Cormorant Garamond’,serif;font-size:1.05rem;line-height:1.7;
-color:var(–text-secondary);
-}
-.reading-bullet-text strong{color:var(–accent-peach)}
-
-.reading-box-actions{
-display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
-padding:0 26px 26px;
-}
-.btn-out{
-padding:10px 22px;background:none;border:1px solid var(–border-accent);border-radius:50px;
-font-family:‘DM Sans’,sans-serif;font-size:.74rem;letter-spacing:.13em;text-transform:uppercase;
-color:var(–text-secondary);cursor:pointer;transition:all var(–t);
-}
-.btn-out:hover{border-color:var(–accent-orange);color:var(–accent-orange);background:rgba(212,114,42,.08)}
-.btn-pri{
-padding:10px 22px;background:linear-gradient(135deg,var(–accent-orange),var(–accent-wine));
-border:none;border-radius:50px;font-family:‘DM Sans’,sans-serif;font-size:.74rem;
-font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:#fff;
-cursor:pointer;transition:all var(–t);
-}
-.btn-pri:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(139,44,44,.35)}
-
-/* =============================================
-MODAL
-============================================= */
-.modal-ov{
-position:fixed;inset:0;background:rgba(15,8,8,.88);
-backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-z-index:300;display:none;align-items:center;justify-content:center;padding:18px;
-}
-.modal-ov.open{display:flex;animation:fadeIn .28s ease}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal-box{
-background:var(–bg-secondary);border:1px solid var(–border-accent);border-radius:16px;
-max-width:490px;width:100%;max-height:88vh;overflow-y:auto;
-animation:scaleIn .32s cubic-bezier(.34,1.4,.64,1);
-}
-@keyframes scaleIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
-.modal-hd{padding:22px 22px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.modal-badge{
-font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(–accent-orange);
-background:rgba(212,114,42,.12);border:1px solid rgba(212,114,42,.25);
-padding:5px 11px;border-radius:50px;white-space:nowrap;
-}
-.modal-close{
-width:30px;height:30px;background:none;border:1px solid var(–border-subtle);
-color:var(–text-muted);border-radius:50%;cursor:pointer;font-size:.85rem;
-display:flex;align-items:center;justify-content:center;transition:all var(–t);flex-shrink:0;
-}
-.modal-close:hover{border-color:var(–accent-peach);color:var(–accent-peach)}
-.modal-art{
-margin:18px 22px 0;height:170px;border-radius:10px;border:1px solid var(–border-subtle);
-overflow:hidden;background:linear-gradient(145deg,rgba(139,44,44,.25),rgba(45,26,23,.5));
-display:flex;align-items:center;justify-content:center;position:relative;
-}
-[data-theme=“light”] .modal-art{background:linear-gradient(145deg,rgba(200,150,100,.25),rgba(180,120,80,.15))}
-.modal-art::before{display:none}
-.modal-art img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:10px}
-.modal-art-sym{font-size:2.8rem;position:relative;z-index:1;filter:drop-shadow(0 0 14px rgba(212,114,42,.4))}
-.modal-body{padding:16px 22px 22px}
-.modal-name{font-family:‘Playfair Display’,serif;font-size:1.45rem;font-weight:700;color:var(–text-primary);margin-bottom:4px;line-height:1.2}
-.modal-pos{font-family:‘Cormorant Garamond’,serif;font-size:.98rem;font-style:italic;color:var(–accent-peach);margin-bottom:12px;opacity:.85}
-.modal-div{height:1px;background:var(–border-subtle);margin-bottom:12px}
-.modal-mlabel{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(–text-muted);margin-bottom:7px}
-.modal-meaning{font-family:‘Cormorant Garamond’,serif;font-size:1.08rem;line-height:1.7;color:var(–text-secondary);margin-bottom:18px}
-.modal-meaning strong{color:var(–accent-peach)}
-.modal-share{
-width:100%;padding:10px 16px;background:rgba(232,180,138,.08);border:1px solid var(–border-accent);
-border-radius:8px;font-family:‘DM Sans’,sans-serif;font-size:.72rem;font-weight:500;
-letter-spacing:.12em;text-transform:uppercase;color:var(–accent-peach);
-cursor:pointer;transition:all var(–t);display:flex;align-items:center;justify-content:center;gap:6px;
-}
-.modal-share:hover{background:rgba(232,180,138,.14);border-color:var(–accent-peach)}
-
-/* =============================================
-PERSONAL PAGE
-============================================= */
-#page-personal{display:none;flex-direction:column;align-items:center;padding-top:calc(var(–nav-height) + 52px);padding-bottom:80px}
-#page-personal.active{display:flex}
-.pers-wrap{width:100%;max-width:600px;padding:0 22px}
-.pers-eyebrow{font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:var(–accent-orange);margin-bottom:10px;display:flex;align-items:center;gap:10px}
-.pers-eyebrow::after{content:’’;flex:1;height:1px;background:var(–border-subtle)}
-.pers-title{font-family:‘Playfair Display’,serif;font-size:clamp(1.6rem,5vw,2.5rem);font-weight:700;line-height:1.15;color:var(–text-primary);margin-bottom:8px}
-.pers-title em{font-style:italic;color:var(–accent-peach)}
-.pers-lead{font-family:‘Cormorant Garamond’,serif;font-size:1.08rem;font-style:italic;color:var(–text-muted);line-height:1.65;margin-bottom:26px}
-.avail{background:rgba(139,44,44,.15);border:1px solid rgba(139,44,44,.35);border-left:3px solid var(–accent-wine);border-radius:6px;padding:14px 18px;margin-bottom:30px;display:flex;align-items:flex-start;gap:12px}
-[data-theme=“light”] .avail{background:rgba(139,44,44,.08)}
-.avail-ico{font-size:1.1rem;flex-shrink:0;margin-top:1px}
-.avail-text strong{display:block;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(–accent-peach);margin-bottom:3px}
-.avail-text span{font-family:‘Cormorant Garamond’,serif;font-size:.96rem;font-style:italic;color:var(–text-secondary)}
-.p-form{background:var(–bg-card);border:1px solid var(–border-subtle);border-radius:14px;padding:30px}
-.p-grp{margin-bottom:18px}
-.p-lbl{display:block;font-size:.67rem;letter-spacing:.16em;text-transform:uppercase;color:var(–text-muted);margin-bottom:7px}
-.p-inp,.p-ta{width:100%;background:var(–bg-tertiary);border:1px solid var(–border-subtle);border-radius:8px;padding:11px 14px;font-family:‘DM Sans’,sans-serif;font-size:.9rem;color:var(–text-primary);outline:none;transition:all var(–t)}
-.p-inp::placeholder,.p-ta::placeholder{color:var(–text-muted);opacity:.6}
-.p-inp:focus,.p-ta:focus{border-color:var(–accent-orange);background:var(–bg-card-hover);box-shadow:0 0 0 3px rgba(212,114,42,.12)}
-.p-ta{resize:vertical;min-height:105px;line-height:1.6}
-.p-hint{margin-top:5px;font-size:.72rem;color:var(–text-muted);font-style:italic}
-.p-sub{width:100%;padding:13px 20px;background:linear-gradient(135deg,var(–accent-orange),var(–accent-wine));border:none;border-radius:8px;font-family:‘DM Sans’,sans-serif;font-size:.78rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#fff;cursor:pointer;transition:all var(–t)}
-.p-sub:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(139,44,44,.35)}
-.p-note{margin-top:14px;text-align:center;font-size:.73rem;color:var(–text-muted);font-style:italic}
-.p-ok{text-align:center;padding:34px 16px;display:none}
-.p-ok.show{display:block}
-.p-ok-ico{font-size:2.2rem;margin-bottom:10px}
-.p-ok h3{font-family:‘Playfair Display’,serif;font-size:1.25rem;color:var(–text-primary);margin-bottom:6px}
-.p-ok p{font-family:‘Cormorant Garamond’,serif;font-size:.97rem;font-style:italic;color:var(–text-muted)}
-
-/* =============================================
-TOAST
-============================================= */
-.toast{
-position:fixed;bottom:calc(22px + var(–safe-b));left:50%;
-transform:translateX(-50%) translateY(14px);
-background:var(–bg-tertiary);border:1px solid var(–border-accent);border-radius:50px;
-padding:10px 20px;font-size:.78rem;letter-spacing:.06em;color:var(–accent-peach);
-opacity:0;pointer-events:none;z-index:400;
-transition:opacity .28s ease,transform .28s ease;white-space:nowrap;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* =============================================
-SCROLLBAR
-============================================= */
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(–bg-primary)}
-::-webkit-scrollbar-thumb{background:var(–border-accent);border-radius:3px}
-
-/* =============================================
-RESPONSIVE
-============================================= */
-@media(max-width:680px){
-nav{padding:0 14px}
-.nav-links a{padding:6px 9px;font-size:.68rem}
-.celtic-cross{–ccw:62px;–cch:87px;gap:6px}
-.p-form{padding:20px 16px}
-}
-@media(max-width:400px){
-.nav-brand span:not(.nav-brand-sym){display:none}
-.celtic-cross{–ccw:48px;–cch:67px;gap:4px}
-.cc-art-sym{font-size:1rem}
-.cc-name{font-size:.46rem}
-}
-
-/* ── Category selector ── */
-.category-wrap{width:100%;max-width:420px;margin:0 auto}
-.category-label{
-display:block;font-size:.6rem;letter-spacing:.06em;
-color:var(–text-muted);margin-bottom:8px;opacity:.7;text-align:center;
-}
-.category-btns{display:flex;gap:8px;justify-content:center}
-.cat-btn{
-flex:1;padding:11px 8px;
-background:none;border:1px solid var(–border-subtle);border-radius:10px;
-font-family:‘Playfair Display’,serif;font-size:.9rem;font-style:italic;
-color:var(–text-muted);cursor:pointer;transition:all var(–t);
-display:flex;flex-direction:column;align-items:center;gap:4px;
-}
-.cat-btn-icon{font-size:1.1rem;opacity:.7}
-.cat-btn:hover{border-color:var(–border-accent);color:var(–text-secondary)}
-.cat-btn.selected{
-background:rgba(212,114,42,.1);border-color:var(–accent-orange);
-color:var(–accent-orange);
-}
-.cat-btn.selected .cat-btn-icon{opacity:1}
-
-.sym-gold{color:#c9920a !important;filter:drop-shadow(0 0 5px rgba(201,146,10,.6))}
-
-/* ── Card Library page ── */
-#page-library{display:none;flex-direction:column;align-items:center;padding-top:calc(var(–nav-height) + 44px);padding-bottom:80px}
-#page-library.active{display:flex}
-.lib-wrap{width:100%;max-width:1000px;padding:0 20px}
-.lib-header{text-align:center;margin-bottom:32px}
-.lib-header h2{font-family:‘Playfair Display’,serif;font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;color:var(–text-primary);margin-bottom:6px}
-.lib-header p{font-family:‘Cormorant Garamond’,serif;font-size:1rem;font-style:italic;color:var(–text-muted)}
-.lib-filter{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:28px}
-.lib-filter-btn{
-padding:7px 18px;background:none;border:1px solid var(–border-subtle);border-radius:50px;
-font-family:‘DM Sans’,sans-serif;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
-color:var(–text-muted);cursor:pointer;transition:all var(–t);
-}
-.lib-filter-btn:hover,.lib-filter-btn.active{
-border-color:var(–accent-orange);color:var(–accent-orange);background:rgba(212,114,42,.08);
-}
-.lib-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
-gap:14px;
-}
-.lib-card{
-background:var(–bg-card);border:1px solid var(–border-subtle);border-radius:10px;
-overflow:hidden;cursor:pointer;transition:all var(–t);
-}
-.lib-card:hover{border-color:var(–accent-orange);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
-.lib-card-art{
-aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;
-background:linear-gradient(145deg,rgba(139,44,44,.2),rgba(45,26,23,.4));
-position:relative;overflow:hidden;font-size:2rem;
-}
-[data-theme=“light”] .lib-card-art{background:linear-gradient(145deg,rgba(200,150,100,.25),rgba(180,120,80,.15))}
-.lib-card-art img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.lib-card-art-sym{position:relative;z-index:1;opacity:.6}
-.lib-card-info{padding:8px 10px}
-.lib-card-name{font-family:‘Playfair Display’,serif;font-size:.68rem;font-weight:600;color:var(–accent-peach);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lib-card-suit{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(–text-muted);margin-top:2px}
-</style>
-
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
@@ -670,7 +48,7 @@ position:relative;overflow:hidden;font-size:2rem;
     <li><a id="nav-library" onclick="showPage('library');return false" data-short="Library"><span class="nav-label">Card Library</span></a></li>
   </ul>
   <div class="nav-right">
-    <button class="nav-btn" onclick="shareApp()" title="Share" aria-label="Share">⇪</button>
+    <button class="nav-btn" id="langToggle" onclick="toggleLang()" title="Switch language" aria-label="Switch language">EN</button>
     <button class="nav-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">☀</button>
   </div>
 </nav>
@@ -689,13 +67,13 @@ position:relative;overflow:hidden;font-size:2rem;
       <span class="category-label">choose your focus</span>
       <div class="category-btns">
         <button class="cat-btn" id="cat-general" onclick="selectCategory('general')">
-          <span class="cat-btn-icon">◈</span>General
+          <span class="cat-btn-icon">◈</span><span class="cat-label">General</span>
         </button>
         <button class="cat-btn" id="cat-love" onclick="selectCategory('love')">
-          <span class="cat-btn-icon">◇</span>Love
+          <span class="cat-btn-icon">◇</span><span class="cat-label">Love</span>
         </button>
         <button class="cat-btn" id="cat-wealth" onclick="selectCategory('wealth')">
-          <span class="cat-btn-icon">✦</span>Wealth
+          <span class="cat-btn-icon">✦</span><span class="cat-label">Wealth</span>
         </button>
       </div>
     </div>
@@ -1253,6 +631,7 @@ function selectCategory(cat) {
 document.addEventListener('DOMContentLoaded', () => {
   setupTheme();
   selectCategory('general');
+  applyLang(); // set initial EN strings (no-op but ensures state is clean)
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 });
 
@@ -1692,24 +1071,35 @@ function toRoman(n) {
 /* ── Card Library ── */
 function buildLibrary() {
   const grid = document.getElementById('libGrid');
-  if (!grid || grid.children.length > 0) return; // already built
+  if (!grid) return;
+  // Always rebuild so language changes are reflected
+  grid.innerHTML = '';
+  const L = LANG[currentLang];
+  const suitLabelMap = {
+    major: L.suit_major,
+    wands: L.suit_wands,
+    cups:  L.suit_cups,
+    swords:L.suit_swords,
+    penta: L.suit_penta
+  };
   DB.forEach((card, i) => {
-    const suit = card.id.split('_')[0]; // major / wands / cups / swords / penta
-    const suitLabel = {major:'Major Arcana',wands:'Wands',cups:'Cups',swords:'Swords',penta:'Pentacles'}[suit] || '';
-    const isPenta = suit === 'penta';
-    const symClass = 'lib-card-art-sym' + (isPenta ? ' sym-gold' : '');
+    const suit      = card.id.split('_')[0];
+    const suitLabel = suitLabelMap[suit] || suit;
+    const cardName  = (currentLang === 'zh') ? (ZH_CARD_NAMES[i] || card.name) : card.name;
+    const isPenta   = suit === 'penta';
+    const symClass  = 'lib-card-art-sym' + (isPenta ? ' sym-gold' : '');
     const artContent = card.img
-      ? `<img src="${card.img}" alt="${card.name}" loading="lazy" />`
+      ? `<img src="${card.img}" alt="${cardName}" loading="lazy" />`
       : `<span class="${symClass}">${card.symbol}</span>`;
     const el = document.createElement('div');
-    el.className = 'lib-card';
+    el.className    = 'lib-card';
     el.dataset.suit = suit;
-    el.innerHTML = `
-      <div class="lib-card-art">${artContent}</div>
-      <div class="lib-card-info">
-        <div class="lib-card-name">${card.name}</div>
-        <div class="lib-card-suit">${suitLabel}</div>
-      </div>`;
+    el.innerHTML =
+      `<div class="lib-card-art">${artContent}</div>`+
+      `<div class="lib-card-info">`+
+        `<div class="lib-card-name">${cardName}</div>`+
+        `<div class="lib-card-suit">${suitLabel}</div>`+
+      `</div>`;
     el.addEventListener('click', () => openLibModal(i));
     grid.appendChild(el);
   });
@@ -1724,19 +1114,32 @@ function filterLib(suit, btn) {
 }
 
 function openLibModal(dbIdx) {
-  const card = DB[dbIdx];
-  // Reuse the existing modal but without position context
-  document.getElementById('mBadge').textContent   = card.id.split('_')[0] === 'major' ? 'Major Arcana' : card.id.split('_')[0].charAt(0).toUpperCase() + card.id.split('_')[0].slice(1);
-  document.getElementById('mName').textContent    = card.name;
-  document.getElementById('mPos').textContent     = 'Card meaning';
+  const card    = DB[dbIdx];
+  const L       = LANG[currentLang];
+  const isZh    = currentLang === 'zh';
+  const suit    = card.id.split('_')[0];
+  const suitLabelMap = {
+    major: L.suit_major,
+    wands: L.suit_wands,
+    cups:  L.suit_cups,
+    swords:L.suit_swords,
+    penta: L.suit_penta
+  };
+  const displayName = isZh ? (ZH_CARD_NAMES[dbIdx] || card.name) : card.name;
+
+  document.getElementById('mBadge').textContent   = suitLabelMap[suit] || suit;
+  document.getElementById('mName').textContent    = displayName;
+  document.getElementById('mPos').textContent     = L.card_meaning_lbl;
   document.getElementById('mMeaning').innerHTML   = card.meaning;
+  document.querySelector('.modal-mlabel').textContent = L.modal_interp;
+
   const artEl = document.getElementById('mArt');
   const symEl = document.getElementById('mSym');
   const oldImg = artEl.querySelector('img');
   if (oldImg) oldImg.remove();
   if (card.img) {
     symEl.style.display = 'none';
-    const img = document.createElement('img'); img.src = card.img; img.alt = card.name;
+    const img = document.createElement('img'); img.src = card.img; img.alt = displayName;
     artEl.appendChild(img);
   } else {
     symEl.style.display = '';
@@ -1746,6 +1149,543 @@ function openLibModal(dbIdx) {
   document.getElementById('modalOv').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+
+
+/* ============================================================
+   LANGUAGE SYSTEM
+   currentLang: 'en' | 'zh'
+   All UI strings live in LANG. Reading engine has parallel
+   ZH_ prefixed constants. Card names are translated via
+   ZH_CARD_NAMES lookup.
+   ============================================================ */
+let currentLang = 'en';
+
+/* ── UI string translations ── */
+const LANG = {
+  en: {
+    brand:            'The Arcana',
+    nav_reading:      'Free Celtic Cross',
+    nav_personal:     'Personal Reading',
+    nav_library:      'Card Library',
+    nav_reading_short:'Reading',
+    nav_personal_short:'Personal',
+    nav_library_short: 'Library',
+    eyebrow_spread:   'Celtic Cross Spread',
+    intro_title:      'Consult the <em>Arcana</em>',
+    intro_sub:        'Still the mind. Choose your focus — then shuffle when ready.',
+    cat_label:        'choose your focus',
+    cat_general:      'General',
+    cat_love:         'Love',
+    cat_wealth:       'Wealth',
+    shuffle_btn:      '✦ Shuffle the Deck',
+    fan_eyebrow:      'Choose Your Cards',
+    fan_title:        'Select <em>ten</em> cards',
+    fan_sub:          'Touch each card that calls to you',
+    drawn_label:      'Cards Drawn',
+    spread_eyebrow:   'The Celtic Cross',
+    spread_title:     'Your Reading',
+    spread_sub:       'Click any card to explore its meaning',
+    loading_text:     'The cards are speaking…',
+    at_a_glance:      'At a Glance',
+    btn_new:          '↺ New Reading',
+    btn_share:        '⇪ Share This Reading',
+    modal_interp:     'Interpretation',
+    modal_share:      '⇪ Share This Reading With a Friend',
+    reading_box_title:'Your Reading',
+    pers_eyebrow:     'Deep Interpretation',
+    pers_title:       'A Reading <em>Just for You</em>',
+    pers_lead:        'Beyond the algorithm lies intuition honed over years. Share what weighs on your spirit — a personal reading offers context, nuance, and the space to truly listen.',
+    avail_strong:     'Limited Availability',
+    avail_span:       'Request a deep personal interpretation — Response Time: 2–3 Days. Each reading receives full, unhurried attention.',
+    lbl_name:         'Your Name',
+    lbl_email:        'Email Address',
+    lbl_question:     'Your Question',
+    ph_name:          'How shall I call you?',
+    ph_email:         'Where shall I send your reading?',
+    ph_question:      'What is weighing on your heart?',
+    form_hint:        'The more openly you share, the more precisely the cards can speak.',
+    form_submit:      'Send My Request →',
+    form_note:        'Your question is held with care and complete discretion.',
+    ok_title:         'Your Request Is Received',
+    ok_body:          'The cards have noted your inquiry. Expect a personal response within 2–3 days.',
+    lib_title:        'The 78 Cards',
+    lib_sub:          'Your complete deck — tap any card to read its interpretation',
+    lib_all:          'All 78',
+    lib_major:        'Major Arcana',
+    lib_wands:        'Wands',
+    lib_cups:         'Cups',
+    lib_swords:       'Swords',
+    lib_penta:        'Pentacles',
+    suit_major:       'Major Arcana',
+    suit_wands:       'Wands',
+    suit_cups:        'Cups',
+    suit_swords:      'Swords',
+    suit_penta:       'Pentacles',
+    card_meaning_lbl: 'Card meaning',
+    reading_general:  'Your Reading',
+    reading_love:     'Love Reading',
+    reading_wealth:   'Wealth Reading',
+  },
+  zh: {
+    brand:            '神秘奥义',
+    nav_reading:      '凯尔特十字牌阵',
+    nav_personal:     '个人解读',
+    nav_library:      '牌义库',
+    nav_reading_short:'占卜',
+    nav_personal_short:'个人',
+    nav_library_short: '牌库',
+    eyebrow_spread:   '凯尔特十字牌阵',
+    intro_title:      '问询<em>奥义</em>',
+    intro_sub:        '静心凝神，选择方向，再洗牌起卦。',
+    cat_label:        '选择占卜方向',
+    cat_general:      '综合',
+    cat_love:         '感情',
+    cat_wealth:       '财富',
+    shuffle_btn:      '✦ 洗牌',
+    fan_eyebrow:      '选择你的牌',
+    fan_title:        '选择<em>十张</em>牌',
+    fan_sub:          '触摸每一张向你呼唤的牌',
+    drawn_label:      '已选牌数',
+    spread_eyebrow:   '凯尔特十字',
+    spread_title:     '你的解读',
+    spread_sub:       '点击任意牌探索其含义',
+    loading_text:     '牌正在述说……',
+    at_a_glance:      '一览',
+    btn_new:          '↺ 重新占卜',
+    btn_share:        '⇪ 分享此解读',
+    modal_interp:     '牌义解读',
+    modal_share:      '⇪ 将此解读分享给朋友',
+    reading_box_title:'你的解读',
+    pers_eyebrow:     '深度解读',
+    pers_title:       '专属<em>你的</em>解读',
+    pers_lead:        '算法之外，是多年磨砺而成的直觉。分享你内心的困惑——个人解读提供更深层的洞察、细腻的体察与真正的倾听。',
+    avail_strong:     '名额有限',
+    avail_span:       '申请深度个人解读——回复时间：2至3个工作日。每份解读均获得完整、从容的全心关注。',
+    lbl_name:         '你的名字',
+    lbl_email:        '电子邮箱',
+    lbl_question:     '你的问题',
+    ph_name:          '我该如何称呼你？',
+    ph_email:         '解读发送至哪里？',
+    ph_question:      '什么事情压在你心头？',
+    form_hint:        '你分享得越坦诚，牌就能说得越精准。',
+    form_submit:      '提交申请 →',
+    form_note:        '你的问题将被谨慎保密，绝对尊重。',
+    ok_title:         '你的申请已收到',
+    ok_body:          '牌已铭记你的询问。请在2至3个工作日内等待回复。',
+    lib_title:        '七十八张牌',
+    lib_sub:          '完整牌组——点击任意牌阅读其解读',
+    lib_all:          '全部七十八张',
+    lib_major:        '大阿卡纳',
+    lib_wands:        '权杖',
+    lib_cups:         '圣杯',
+    lib_swords:       '宝剑',
+    lib_penta:        '星币',
+    suit_major:       '大阿卡纳',
+    suit_wands:       '权杖',
+    suit_cups:        '圣杯',
+    suit_swords:      '宝剑',
+    suit_penta:       '星币',
+    card_meaning_lbl: '牌义',
+    reading_general:  '你的解读',
+    reading_love:     '感情解读',
+    reading_wealth:   '财富解读',
+  }
+};
+
+/* ── Mandarin card names (same order as DB array) ── */
+const ZH_CARD_NAMES = [
+  // 大阿卡纳 Major Arcana (0-21)
+  '愚者','魔术师','女祭司','皇后','皇帝','教皇','恋人','战车',
+  '力量','隐士','命运之轮','正义','倒吊人','死神','节制','恶魔',
+  '塔','星星','月亮','太阳','审判','世界',
+  // 权杖 Wands (22-35)
+  '权杖王牌','权杖二','权杖三','权杖四','权杖五','权杖六','权杖七',
+  '权杖八','权杖九','权杖十','权杖侍从','权杖骑士','权杖王后','权杖国王',
+  // 圣杯 Cups (36-49)
+  '圣杯王牌','圣杯二','圣杯三','圣杯四','圣杯五','圣杯六','圣杯七',
+  '圣杯八','圣杯九','圣杯十','圣杯侍从','圣杯骑士','圣杯王后','圣杯国王',
+  // 宝剑 Swords (50-63)
+  '宝剑王牌','宝剑二','宝剑三','宝剑四','宝剑五','宝剑六','宝剑七',
+  '宝剑八','宝剑九','宝剑十','宝剑侍从','宝剑骑士','宝剑王后','宝剑国王',
+  // 星币 Pentacles (64-77)
+  '星币王牌','星币二','星币三','星币四','星币五','星币六','星币七',
+  '星币八','星币九','星币十','星币侍从','星币骑士','星币王后','星币国王'
+];
+
+
+/* ── Mandarin keywords — same index order as DB (78 cards) ── */
+const ZH_KEYWORDS = [
+  // 大阿卡纳 Major Arcana
+  ['崭新开始','盲目信念','无限潜能'],
+  ['专注意志','工具掌握','显化'],
+  ['内在洞知','隐藏真相','两者之间'],
+  ['丰盛','创造性滋养','自然生长'],
+  ['权威','清晰结构','积累的纪律'],
+  ['传统','承袭信念','精神惯例'],
+  ['契合','决定性选择','真实结合'],
+  ['定向意志','掌控张力','向前动能'],
+  ['沉静勇气','内在韧性','柔韧坚持'],
+  ['刻意独处','内在灯光','积累的智慧'],
+  ['必然循环','转变的命运','升降之道'],
+  ['公正裁量','不偏不倚的真相','应得的因果'],
+  ['自愿悬停','新的视角','放手以观'],
+  ['必要转化','释放','必须放下之物'],
+  ['融合','中道','耐心炼金'],
+  ['已命名的束缚','松动的锁链','囚禁的幻象'],
+  ['突如其来的动荡','虚假结构的崩塌','清场'],
+  ['重燃的希望','沉静的信念','疗愈进行中'],
+  ['变幻的幻象','深层直觉','未照亮的路'],
+  ['耀眼清明','纯粹喜悦','完全可见'],
+  ['应答呼唤','完全升起','夺回的第二次机会'],
+  ['整全','一个圆满的循环','完成的视野'],
+  // 权杖 Wands
+  ['创意火花','点燃的激情','开始的冲动'],
+  ['提前规划','拓宽的视野','大胆愿景'],
+  ['扩张中的动能','耐心守望','已启航的船'],
+  ['庆祝','真实的到达','根基完成'],
+  ['有益的摩擦','竞争的力量','选择值得一战之事'],
+  ['公众认可','赢得的胜利','成功的信号'],
+  ['守住立场','防御的位置','压力下的信念'],
+  ['迅速行动','加速的事件','行进中的讯息'],
+  ['饱经风霜的韧性','守望的耐力','仍然站立'],
+  ['过重的负担','可选的重量','触手可及的完成'],
+  ['新鲜热情','最初的好奇','无条件的开始'],
+  ['大胆冲锋','热情追求','对准目标的火'],
+  ['磁性权威','创意温暖','自信的存在'],
+  ['远见领导力','定向之火','大格局创意掌控'],
+  // 圣杯 Cups
+  ['情感的开启','给予的恩典','爱的开始'],
+  ['真实的互惠','真诚的相遇','彼此认可'],
+  ['共享的喜悦','共同体','归属的温暖'],
+  ['向内退隐','未见的奉献之杯','沉思的停顿'],
+  ['被尊重的悲伤','失去后余留之物','仍立着的杯'],
+  ['怀旧','重访的纯真','浮现的过去'],
+  ['过多的愿景','选择真实','幻象与实质'],
+  ['有意识的离开','走开','转向滋养你之物'],
+  ['愿望成真','深层满足','不带愧疚的满足'],
+  ['情感圆满','持久的归属','经受住考验的爱'],
+  ['细腻的直觉','情感讯息','梦幻的敏感'],
+  ['浪漫的追求','跟随感觉','行进中的理想主义者'],
+  ['深层慈悲','情感的稳定','无吸附的共情'],
+  ['情感掌握','智慧的慈悲','稳定的深度'],
+  // 宝剑 Swords
+  ['洞穿的清明','突破性洞见','切穿的真相'],
+  ['刻意的盲目','被回避的选择','意志维持的僵局'],
+  ['被承认的悲痛','一道已认可的伤','必须被感受的哀伤'],
+  ['心智的休息','战略性撤退','战后的恢复'],
+  ['空洞的胜利','冲突的代价','明智地选择战场'],
+  ['必要的离开','走向更平静的水域','重压下的过渡'],
+  ['迂回的行动','策略或逃避','迂回之路'],
+  ['自我设限','可移除的眼罩','信念作为囚笼'],
+  ['心智的暗夜','放大的焦虑','夜晚的恐惧与晨光的真相'],
+  ['绝对的终结','触底','唯一的方向是向上'],
+  ['敏锐的感知','探询的好奇','原始的心智能量'],
+  ['迅速决断的行动','智识冲锋','快想——后说'],
+  ['清醒的辨别力','积累的清明','诚实的善意胜过舒适的谎言'],
+  ['原则性权威','不妥协的清明','诚实判断的重量'],
+  // 星币 Pentacles
+  ['物质的种子','有形的新开始','真实的机会'],
+  ['动态中的平衡','被权衡的优先项','压力下的适应力'],
+  ['协作的精通','分享的技能','共同建造'],
+  ['囤积','握得太紧','安全感变成贫乏'],
+  ['物质困境','感到被排除在外','可能未被看见的帮助'],
+  ['资源的流动','慷慨及其阴影','公平的交换'],
+  ['中途评估','耐心评价','投资在回报吗？'],
+  ['通过重复达到精通','专注的手艺','为工作本身而工作'],
+  ['积累的丰盛','自给自足','栖居于你所建造之中'],
+  ['遗产','跨代的富足','超越你之后仍留存之物'],
+  ['勤奋的学习','真诚的实践好奇心','认真的初学者'],
+  ['有条不紊的进步','可靠的跟进','把事做对胜过做快'],
+  ['实际的温暖','滋养的丰盛','踏实而慷慨'],
+  ['物质掌握','耐心的管理','体现的、从容的成功']
+];
+/* ── Mandarin position labels ── */
+const ZH_POSITIONS = [
+  {num:1,  label:'当下',    context:'此牌反映你当前的处境'},
+  {num:2,  label:'阻碍',    context:'此牌代表交叉影响或挑战'},
+  {num:3,  label:'上方',    context:'此牌显示你意识中的目标或理想'},
+  {num:4,  label:'根基',    context:'此牌揭示潜意识力量或过去的基础'},
+  {num:5,  label:'过去',    context:'此牌述说正在消退或离去的事物'},
+  {num:6,  label:'未来',    context:'此牌指向即将到来的近期发展'},
+  {num:7,  label:'自我',    context:'此牌映照你如何看待自己或你的态度'},
+  {num:8,  label:'环境',    context:'此牌反映围绕你的能量与人事'},
+  {num:9,  label:'希望与恐惧',context:'此牌触及你内心最深的希望与恐惧'},
+  {num:10, label:'结果',    context:'此牌揭示当前力量的潜在走向'},
+];
+
+/* ── Mandarin reading engine constants ── */
+const ZH_CAT_OPEN = {
+  general: '十张牌已落定——它们共同描绘出你所处位置与前行方向的轮廓。',
+  love:    '这副牌以心为镜——所显现的，正是塑造你情感连结、渴望与模式的深层力量。',
+  wealth:  '以物质生活为透镜，这副牌照见了围绕你的资源、努力与财运方向运作的力量。'
+};
+const ZH_CAT_CLOSE = {
+  general: '解读不能改变现实，但能让你看清它——让你以更清醒的意图选择接下来的路。',
+  love:    '爱不是固定的终点。牌所揭示的，是道路当下的形状——由你自己选择如何走。',
+  wealth:  '丰盛源于清明。牌展示的是当下的条件——选择权始终完全属于你。'
+};
+
+/* ── Mandarin reading overviews ── */
+function zhBuildOverview(cards, category) {
+  const idx = (i) => DB.indexOf(cards[i]);
+  const c   = (i) => ZH_CARD_NAMES[idx(i)] || cards[i].name;
+  const k0  = (i) => (ZH_KEYWORDS[idx(i)] || cards[i].keywords)[0];
+  const k1  = (i) => (ZH_KEYWORDS[idx(i)] || cards[i].keywords)[1];
+
+  if (category === 'love') {
+    return `${c(0)}位于牌阵的情感中心——<strong>${k0(0)}</strong>是此刻你情感连结中活跃的品质。` +
+      `${c(1)}与之交叉，带来<strong>${k0(1)}</strong>，这是定义内心正在经历的考验与摩擦的力量。` +
+      `向你走来的是${c(5)}，携带着<strong>${k0(5)}</strong>的能量。` +
+      `若以诚实与专注回应这些力量，${c(9)}预示着<strong>${k0(9)}</strong>——你的情感关系正悄然倾向的方向。`;
+  }
+  if (category === 'wealth') {
+    return `在物质层面，此刻由<strong>${k0(0)}</strong>塑造——${c(0)}位于中心，命名了当前主导你资源与努力的能量。` +
+      `${c(1)}代表阻力：<strong>${k0(1)}</strong>是建设之路必须穿越的。` +
+      `${c(5)}将<strong>${k0(5)}</strong>带入视野，而${c(9)}指向<strong>${k0(9)}</strong>——若当前模式延续，这将是最可能的归宿。`;
+  }
+  return `${c(0)}位于你当下所站之处的核心——<strong>${k0(0)}</strong>是此刻最具决定意义的品质。` +
+    `与之交叉的是${c(1)}，<strong>${k0(1)}</strong>的能量，那股既考验又塑造你道路的力量。` +
+    `身后，<strong>${k1(4)}</strong>正在松开它的握持；前方，${c(5)}将<strong>${k0(5)}</strong>带入你的近期地平线。` +
+    `${c(9)}作为结果，述说着<strong>${k0(9)}</strong>——这些力量已在悄然走向的方向。`;
+}
+
+/* ── Mandarin bullets ── */
+function zhBuildBullets(cards, category) {
+  const idx = (i) => DB.indexOf(cards[i]);
+  const c   = (i) => ZH_CARD_NAMES[idx(i)] || cards[i].name;
+  const k0  = (i) => (ZH_KEYWORDS[idx(i)] || cards[i].keywords)[0];
+  const k1  = (i) => (ZH_KEYWORDS[idx(i)] || cards[i].keywords)[1];
+
+  if (category === 'general') {
+    return [
+      { icon:'◈', label:'综合运势',
+        text:`${c(0)}位于中心，标志着这是一段<strong>${k0(0)}</strong>的时期。${c(9)}作为结果，暗示当前的力量正朝向<strong>${k0(9)}</strong>流动——以耐心持守这个方向，道路将愈加清晰。`},
+      { icon:'🪙', label:'财富与资源',
+        text:`${c(3)}位于牌阵根基，以<strong>${k0(3)}</strong>述说你目前所站立的物质基础。${c(2)}高悬其上，指向<strong>${k0(2)}</strong>作为当前视野中的财务抱负；而${c(1)}则点明了你与目标之间最主要的阻力。`},
+      { icon:'◇', label:'爱情与关系',
+        text:`在情感层面，${c(6)}显示你目前带入关系的品质是<strong>${k0(6)}</strong>。即将到来的${c(5)}携带着<strong>${k0(5)}</strong>——一股将在近期为你最亲密的情感关系着色的能量。`},
+      { icon:'☽', label:'灵性与内在',
+        text:`${c(2)}作为最高理想，反映出内心对<strong>${k0(2)}</strong>的深层朝向。${c(8)}浮现于希望与恐惧之位，带来<strong>${k0(8)}</strong>——那个内心最深的渴望与抗拒仍在学习彼此辨认的边界。`}
+    ];
+  }
+  if (category === 'love') {
+    const selfSuit = cards[6].id.split('_')[0];
+    const tempMap  = {
+      major:'深邃内省的灵魂——感受深沉，在行动前于内心静静消化',
+      wands:'火热激情的性情——充满活力、自发，在爱中充满理想主义',
+      cups: '深度共情、情感直觉丰富的本质——浪漫、敏感，渴望真正的灵魂连结',
+      swords:'思维敏锐、重视诚实与清晰的存在——视智识共鸣高于表演',
+      penta:'踏实、忠诚、可靠的性格——爱以可靠、陪伴与实际关怀来表达'
+    };
+    const envSuit = cards[7].id.split('_')[0];
+    const compatMap = {
+      major:'与你深度匹配的人——能陪你坐在复杂中而不急于解决',
+      wands:'带来温暖与生命力的人——以热情回应你，而不将其耗尽',
+      cups: '情感上真正可及、温柔且愿意被完全看见的人',
+      swords:'诚实、直接且思维活跃的人——尊重你到足以告诉你真相',
+      penta:'稳定、持续、在场的人——爱以时间中持续的行动而非宏大姿态来展现'
+    };
+    return [
+      { icon:'◇', label:'建议',
+        text:`${c(1)}作为交叉影响，暗示<strong>${k0(1)}</strong>是当前值得审视的情感模式。牌阵的建议：放慢脚步，分辨你真实的感受与你学会表演的部分。${c(6)}提醒你：你如何看待自己，在关系开始之前便已塑造了每一次连结。`},
+      { icon:'✦', label:'最佳行动方向',
+        text:`${c(5)}携带着<strong>${k0(5)}</strong>向你走来，最契合的行动是主动朝这个方向倾身，而非抗拒。${c(9)}作为目标——<strong>${k0(9)}</strong>——不靠追求而至，靠你带入当下的存在品质。让${c(4)}完成它的离去；向回伸手只会拖慢已准备前行的事物。`},
+      { icon:'☽', label:'性格特质',
+        text:`牌指向：<strong>${tempMap[selfSuit]||'复杂而多层次的情感本质'}</strong>。在关系中，你倾向于${c(8)}的领域——<strong>${k0(8)}</strong>——在那里，你对爱的希望与恐惧戴着同一张面孔，需要耐心的辨别。与你能量最共鸣的人是：${compatMap[envSuit]||'以同等真诚与深度与你相遇的人'}。`}
+    ];
+  }
+  if (category === 'wealth') {
+    const crownSuit = cards[2].id.split('_')[0];
+    const careerMap = {
+      major:'具有重大意义、影响力或超越交易性价值的角色——领导力、咨询、精神引导，或任何能改变生命的领域',
+      wands:'创业、创意产业、媒体、表演、品牌策略，或任何由愿景与能量驱动的领域',
+      cups: '医疗保健、心理咨询、艺术、酒店、教育，或植根于人际连结与情感智慧的工作',
+      swords:'法律、研究、写作、科技、分析、战略，或任何奖励清晰思维与精准能力的领域',
+      penta:'金融、房地产、建筑、农业、手工艺，或任何以长期建设实在价值为根基的行业'
+    };
+    const rootSuit = cards[3].id.split('_')[0];
+    const bizMap   = {
+      major:'个人发展、教练、健康或灵性服务——回应人们内心深层问题的行业',
+      wands:'初创企业、数字媒体、活动策划、创意机构，或任何创始人能量本身即是产品的业务',
+      cups: '健康与保健、教育、社群平台，或建立在真实人文关怀上的服务型业务',
+      swords:'咨询、法律服务、SaaS、知识产品，或任何以专业知识与清晰表达为核心的B2B业务',
+      penta:'房产、制造业、餐饮，或任何通过可触、可居住的实物创造价值的行业'
+    };
+    return [
+      { icon:'🪙', label:'建议',
+        text:`${c(1)}作为交叉牌，点明<strong>${k0(1)}</strong>是当前物质生活中最主要的阻力。牌阵的建议：在扩展屋顶之前，先处理好根基。${c(3)}位于基础，述说<strong>${k0(3)}</strong>——这是你财务稳定当前所依赖的，值得诚实审视再做下一步。`},
+      { icon:'✦', label:'最佳行动方向',
+        text:`${c(5)}携带着<strong>${k0(5)}</strong>向你走来——最契合的行动是有意识地朝这个品质迈进，而非等待环境推动你。${c(9)}——<strong>${k0(9)}</strong>——在你以${c(2)}的抱负<strong>${k0(2)}</strong>为北极星并以此引导近期决策时，便能触及。${c(4)}所承载的——<strong>${k0(4)}</strong>——已完成其使命；放下它，道路将少些负重。`},
+      { icon:'◈', label:'职业方向',
+        text:`牌建议你天然契合：<strong>${careerMap[crownSuit]||'允许自主与有意义贡献的领域'}</strong>。${c(6)}位于自我认知之位，反映<strong>${k0(6)}</strong>是你带入工作的能量——最能彰显这一品质价值的职业环境，是那些奖励<strong>${k1(6)}</strong>的地方。`},
+      { icon:'⊛', label:'商业与行业',
+        text:`对于考虑创业的人，牌指向：<strong>${bizMap[rootSuit]||'建立持久实际价值的行业'}</strong>。${c(7)}位于环境之位——携带<strong>${k0(7)}</strong>——暗示你周围的人与结构当前是助力还是阻力；在投入资源之前，先辨别清楚。${c(8)}点明<strong>${k0(8)}</strong>是需要跨越的内心边界——财务抱负与自我怀疑仍在那里谈判。`}
+    ];
+  }
+  return [];
+}
+
+/* ── Toggle language ── */
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'zh' : 'en';
+  applyLang();
+}
+
+/* ── Apply all UI translations ── */
+function applyLang() {
+  const L   = LANG[currentLang];
+  const btn = document.getElementById('langToggle');
+
+  // Toggle button state
+  btn.textContent = currentLang === 'en' ? 'EN' : '中文';
+  btn.classList.toggle('zh', currentLang === 'zh');
+
+  // Nav brand
+  document.querySelector('.nav-brand span:not(.nav-brand-sym)').textContent = L.brand;
+
+  // Nav links
+  const navR = document.getElementById('nav-reading');
+  const navP = document.getElementById('nav-personal');
+  const navLi= document.getElementById('nav-library');
+  navR.querySelector('.nav-label').textContent  = L.nav_reading;
+  navP.querySelector('.nav-label').textContent  = L.nav_personal;
+  navLi.querySelector('.nav-label').textContent = L.nav_library;
+  navR.dataset.short  = L.nav_reading_short;
+  navP.dataset.short  = L.nav_personal_short;
+  navLi.dataset.short = L.nav_library_short;
+
+  // Phase 1 — shuffle
+  document.querySelector('.intro-eyebrow').textContent = L.eyebrow_spread;
+  document.querySelector('.intro-title').innerHTML     = L.intro_title;
+  document.querySelector('.intro-sub').textContent     = L.intro_sub;
+  document.querySelector('.category-label').textContent= L.cat_label;
+  document.querySelector('#cat-general .cat-label').textContent = L.cat_general;
+  document.querySelector('#cat-love .cat-label').textContent    = L.cat_love;
+  document.querySelector('#cat-wealth .cat-label').textContent  = L.cat_wealth;
+  document.getElementById('shuffleBtn').textContent = L.shuffle_btn;
+
+  // Phase 2 — fan
+  const fanH = document.querySelector('.fan-header');
+  if (fanH) {
+    fanH.querySelector('.eyebrow').textContent = L.fan_eyebrow;
+    fanH.querySelector('h2').innerHTML         = L.fan_title;
+    fanH.querySelector('p:last-child').textContent = L.fan_sub;
+  }
+  document.querySelector('.draw-pill-label').textContent = L.drawn_label;
+
+  // Phase 3 — spread
+  const sH = document.querySelector('.spread-header');
+  if (sH) {
+    sH.querySelector('.eyebrow').textContent    = L.spread_eyebrow;
+    sH.querySelector('h2').textContent          = L.spread_title;
+    sH.querySelector('p:last-child').textContent= L.spread_sub;
+  }
+  const loadText = document.querySelector('.reading-loading-text');
+  if (loadText) loadText.textContent = L.loading_text;
+  const glance = document.querySelector('.reading-section-label');
+  if (glance) glance.textContent = L.at_a_glance;
+  const btnNew = document.querySelector('.btn-out');
+  if (btnNew) btnNew.textContent = L.btn_new;
+  const btnShr = document.querySelector('.btn-pri');
+  if (btnShr) btnShr.textContent = L.btn_share;
+  const rTitle = document.getElementById('readingBoxTitle');
+  if (rTitle) rTitle.textContent = L.reading_box_title;
+
+  // Modal
+  document.querySelector('.modal-mlabel').textContent = L.modal_interp;
+  document.querySelector('.modal-share').textContent  = L.modal_share;
+
+  // Personal page
+  const persEy = document.querySelector('.pers-eyebrow');
+  if (persEy) {
+    // Replace only the text node, preserve ::after pseudo-element
+    const firstText = [...persEy.childNodes].find(n => n.nodeType === 3);
+    if (firstText) firstText.textContent = L.pers_eyebrow;
+    else persEy.prepend(document.createTextNode(L.pers_eyebrow));
+  }
+  const persT = document.querySelector('.pers-title');
+  if (persT) persT.innerHTML = L.pers_title;
+  const persL = document.querySelector('.pers-lead');
+  if (persL) persL.textContent = L.pers_lead;
+  const availS = document.querySelector('.avail-text strong');
+  if (availS) availS.textContent = L.avail_strong;
+  const availSp= document.querySelector('.avail-text span');
+  if (availSp) availSp.textContent = L.avail_span;
+  const fName = document.querySelector('label[for="fName"]');
+  if (fName) fName.textContent = L.lbl_name;
+  const fEmail= document.querySelector('label[for="fEmail"]');
+  if (fEmail) fEmail.textContent = L.lbl_email;
+  const fQLbl = document.querySelector('label[for="fQ"]');
+  if (fQLbl) fQLbl.textContent = L.lbl_question;
+  const inpName = document.getElementById('fName');
+  if (inpName) inpName.placeholder = L.ph_name;
+  const inpEmail= document.getElementById('fEmail');
+  if (inpEmail) inpEmail.placeholder = L.ph_email;
+  const inpQ    = document.getElementById('fQ');
+  if (inpQ) inpQ.placeholder = L.ph_question;
+  const hint = document.querySelector('.p-hint');
+  if (hint) hint.textContent = L.form_hint;
+  const sub  = document.querySelector('.p-sub');
+  if (sub) sub.textContent = L.form_submit;
+  const note = document.querySelector('.p-note');
+  if (note) note.textContent = L.form_note;
+  const okH = document.querySelector('.p-ok h3');
+  if (okH) okH.textContent = L.ok_title;
+  const okP = document.querySelector('.p-ok p');
+  if (okP) okP.textContent = L.ok_body;
+
+  // Library page
+  const libH = document.querySelector('.lib-header h2');
+  if (libH) libH.textContent = L.lib_title;
+  const libP = document.querySelector('.lib-header p');
+  if (libP) libP.textContent = L.lib_sub;
+  // Library filter buttons (by position)
+  const libBtns = document.querySelectorAll('.lib-filter-btn');
+  const libKeys = ['lib_all','lib_major','lib_wands','lib_cups','lib_swords','lib_penta'];
+  libBtns.forEach((b,i) => { if (libKeys[i]) b.textContent = L[libKeys[i]]; });
+  // Rebuild library grid with correct language if already on that page
+  const libGrid = document.getElementById('libGrid');
+  if (libGrid && libGrid.children.length > 0) buildLibrary();
+}
+
+/* ── Patch buildParagraph to use ZH engine when lang is zh ── */
+const _origBuildParagraph = buildParagraph;
+buildParagraph = function() {
+  if (currentLang !== 'zh') { _origBuildParagraph(); return; }
+
+  const cat      = selectedCategory || 'general';
+  const catLabel = { general: LANG.zh.reading_general, love: LANG.zh.reading_love, wealth: LANG.zh.reading_wealth };
+  document.getElementById('readingBoxTitle').textContent = catLabel[cat] || LANG.zh.reading_box_title;
+  document.getElementById('readingLoading').style.display = 'flex';
+  document.getElementById('readingPara').innerHTML = '';
+  document.getElementById('readingBullets').style.display = 'none';
+
+  setTimeout(() => {
+    document.getElementById('readingLoading').style.display = 'none';
+    const overview = ZH_CAT_OPEN[cat] + zhBuildOverview(assignedCards, cat) + ZH_CAT_CLOSE[cat];
+    const bullets  = zhBuildBullets(assignedCards, cat);
+    typeText(document.getElementById('readingPara'), overview, () => {
+      renderBullets(bullets);
+    });
+  }, 900);
+};
+
+/* ── Patch openModal to use ZH position labels ── */
+const _origOpenModal = openModal;
+openModal = function(pi) {
+  _origOpenModal(pi);
+  if (currentLang === 'zh') {
+    const zhPos = ZH_POSITIONS[pi];
+    const card  = assignedCards[pi];
+    const zhName= ZH_CARD_NAMES[DB.indexOf(card)] || card.name;
+    document.getElementById('mBadge').textContent = `第${zhPos.num}位 — ${zhPos.label}`;
+    document.getElementById('mName').textContent  = zhName;
+    document.getElementById('mPos').textContent   = zhPos.context;
+    document.querySelector('.modal-mlabel').textContent = LANG.zh.modal_interp;
+  }
+};
+
+/* openLibModal handles language natively — no patch needed */
 
 </script>
 
