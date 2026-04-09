@@ -1,0 +1,173 @@
+/* =============================================
+   The Arcana — Tarot Reading App
+   Stylesheet
+   ============================================= */
+
+:root {
+  color-scheme: dark light;
+  --bg-primary:    #1a0e0e;
+  --bg-secondary:  #231210;
+  --bg-tertiary:   #2d1a17;
+  --bg-card:       #1f1210;
+  --bg-card-hover: #2a1915;
+  --text-primary:  #f2ddc8;
+  --text-secondary:#c9a882;
+  --text-muted:    #8a6a52;
+  --accent-peach:  #e8b48a;
+  --accent-orange: #d4722a;
+  --accent-wine:   #8b2c2c;
+  --border-subtle: rgba(232,180,138,.12);
+  --border-accent: rgba(232,180,138,.35);
+  --card-back:     linear-gradient(145deg,#3d1c18 0%,#1a0e0e 50%,#3d1c18 100%);
+  --nav-height:    64px;
+  --t:             .3s cubic-bezier(.4,0,.2,1);
+  --t-slow:        .6s cubic-bezier(.4,0,.2,1);
+  --safe-b:        env(safe-area-inset-bottom,0px);
+}
+
+[data-theme="light"] {
+  --bg-primary:    #f5ede3;
+  --bg-secondary:  #ede0d0;
+  --bg-tertiary:   #e5d0ba;
+  --bg-card:       #f0e6d8;
+  --bg-card-hover: #e8d5c0;
+  --text-primary:  #2a1410;
+  --text-secondary:#6b3a22;
+  --text-muted:    #9a6a48;
+  --accent-peach:  #c96030;
+  --accent-orange: #b84a12;
+  --accent-wine:   #8b2c2c;
+  --border-subtle: rgba(107,58,34,.15);
+  --border-accent: rgba(107,58,34,.4);
+  --card-back:     linear-gradient(145deg,#c9a882 0%,#e5d0ba 50%,#c9a882 100%);
+}
+
+/* --- BASE STYLES --- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+html {
+  scroll-behavior: smooth;
+  background-color: #1a0e0e !important;
+  color: #f2ddc8;
+}
+
+[data-theme="light"] html {
+  background-color: #f5ede3 !important;
+  color: #2a1410;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  transition: background-color var(--t-slow), color var(--t-slow);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* --- THE CELTIC CROSS GRID --- */
+.celtic-cross {
+  display: grid;
+  grid-template-columns: repeat(6, var(--ccw, 88px));
+  grid-template-rows: repeat(5, var(--cch, 123px));
+  gap: 9px;
+  margin-bottom: 44px;
+}
+
+.cc-pos-3 { grid-column: 3; grid-row: 2; }
+.cc-pos-4 { grid-column: 3; grid-row: 4; }
+.cc-pos-5 { grid-column: 2; grid-row: 3; }
+.cc-pos-6 { grid-column: 4; grid-row: 3; }
+.cc-pos-7 { grid-column: 6; grid-row: 5; }
+.cc-pos-8 { grid-column: 6; grid-row: 4; }
+.cc-pos-9 { grid-column: 6; grid-row: 3; }
+.cc-pos-10 { grid-column: 6; grid-row: 2; }
+
+.cc-center {
+  grid-column: 3;
+  grid-row: 3;
+  position: relative;
+  width: var(--ccw, 88px);
+  height: var(--cch, 123px);
+}
+
+/* --- CARD ANIMATIONS --- */
+.cc-card {
+  width: var(--ccw, 88px);
+  height: var(--cch, 123px);
+  border-radius: 8px;
+  cursor: pointer;
+  perspective: 800px;
+}
+
+.cc-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform .7s cubic-bezier(.4, .2, .2, 1);
+  will-change: transform;
+}
+
+.cc-card.face-up .cc-inner {
+  transform: rotateY(180deg);
+}
+
+.cc-back, .cc-front {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  backface-visibility: hidden;
+  border: 1px solid var(--border-accent);
+}
+
+.cc-back {
+  background: var(--card-back);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cc-front {
+  transform: rotateY(180deg);
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* --- BUTTONS & NAV --- */
+.shuffle-btn, .btn-pri {
+  padding: 14px 44px;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-wine));
+  border: none;
+  border-radius: 50px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(139, 44, 44, 0.3);
+}
+
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(26, 14, 14, 0.7);
+  backdrop-filter: blur(20px);
+  z-index: 200;
+}
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 680px) {
+  .celtic-cross {
+    --ccw: 62px;
+    --cch: 87px;
+    gap: 6px;
+  }
+}
