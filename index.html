@@ -453,9 +453,15 @@ background:rgba(232,180,138,.05);
 }
 .reading-bullet-content{}
 .reading-bullet-label{
-font-family:‘Playfair Display’,serif;font-size:1.05rem;font-weight:700;
-color:var(–accent-peach);letter-spacing:.02em;margin-bottom:6px;
+font-family:‘Playfair Display’,serif;font-size:1.1rem;font-weight:700;
+color:var(–accent-peach);letter-spacing:.02em;margin-bottom:8px;
 line-height:1.2;
+}
+/* Section headers like 【当前状态】 */
+.reading-bullet-label:lang(zh),
+.reading-bullet-label[data-zh]{
+font-family:‘DM Sans’,sans-serif;font-size:1rem;font-weight:700;
+letter-spacing:.06em;
 }
 .reading-bullet-text{
 font-family:‘Cormorant Garamond’,serif;font-size:1.08rem;line-height:1.75;
@@ -663,6 +669,89 @@ position:relative;overflow:hidden;font-size:2rem;
 .lib-card-info{padding:8px 10px}
 .lib-card-name{font-family:‘Playfair Display’,serif;font-size:.68rem;font-weight:600;color:var(–accent-peach);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lib-card-suit{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(–text-muted);margin-top:2px}
+
+/* ── Gesture interaction styles ── */
+
+/* Shake hint on deck pile */
+.deck-pile.shake-ready{cursor:pointer}
+.shake-hint{
+font-size:.62rem;letter-spacing:.1em;color:var(–text-muted);
+text-align:center;opacity:.7;margin-top:-6px;
+font-family:‘Cormorant Garamond’,serif;font-style:italic;
+}
+
+/* Shuffle button secondary appearance when shake available */
+.shuffle-btn.shake-mode{
+background:none;border:1px solid var(–border-accent);
+color:var(–text-secondary);box-shadow:none;font-size:.72rem;
+padding:10px 28px;
+}
+.shuffle-btn.shake-mode:hover{
+border-color:var(–accent-orange);color:var(–accent-orange);
+background:rgba(212,114,42,.08);box-shadow:none;transform:none;
+}
+
+/* Big shake animation for the deck pile */
+@keyframes bigShake{
+0%  {transform:rotate(0) translateX(0) scale(1)}
+8%  {transform:rotate(-6deg) translateX(-8px) scale(1.05)}
+16% {transform:rotate(6deg) translateX(8px) scale(1.05)}
+24% {transform:rotate(-5deg) translateX(-6px) scale(1.08)}
+32% {transform:rotate(5deg) translateX(6px) scale(1.08)}
+40% {transform:rotate(-4deg) translateX(-5px) scale(1.06)}
+48% {transform:rotate(4deg) translateX(5px) scale(1.06)}
+56% {transform:rotate(-3deg) translateX(-4px) scale(1.04)}
+64% {transform:rotate(3deg) translateX(4px) scale(1.04)}
+72% {transform:rotate(-2deg) translateX(-3px) scale(1.02)}
+80% {transform:rotate(2deg) translateX(3px) scale(1.02)}
+88% {transform:rotate(-1deg) translateX(-1px) scale(1.01)}
+100%{transform:rotate(0) translateX(0) scale(1)}
+}
+.deck-pile.big-shaking{animation:bigShake .8s ease}
+
+/* Card lift when finger drags over it */
+.fan-card.finger-hover{
+filter:brightness(1.35);
+box-shadow:0 -14px 28px rgba(0,0,0,.45),0 0 12px rgba(212,114,42,.3);
+}
+
+/* Hold-progress ring on a card being held */
+.fan-card .hold-ring{
+position:absolute;
+top:50%;left:50%;
+transform:translate(-50%,-50%);
+width:36px;height:36px;
+z-index:10;pointer-events:none;
+opacity:0;transition:opacity .15s ease;
+}
+.fan-card.holding .hold-ring{opacity:1}
+
+/* Ripple burst when card is selected via hold */
+@keyframes selectBurst{
+0%  {transform:translate(-50%,-50%) scale(.4);opacity:.9}
+100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}
+}
+.fan-card .select-burst{
+position:absolute;top:50%;left:50%;
+width:40px;height:40px;border-radius:50%;
+background:rgba(212,114,42,.45);
+pointer-events:none;display:none;
+}
+.fan-card.burst-play .select-burst{
+display:block;
+animation:selectBurst .38s ease forwards;
+}
+
+/* Drag trail instruction */
+.fan-drag-hint{
+position:absolute;bottom:10px;left:50%;
+transform:translateX(-50%);
+font-family:‘Cormorant Garamond’,serif;font-size:.78rem;
+font-style:italic;color:var(–text-muted);opacity:.6;
+pointer-events:none;white-space:nowrap;letter-spacing:.04em;
+transition:opacity .4s ease;
+}
+.fan-drag-hint.hide{opacity:0}
 </style>
 
 </head>
@@ -712,11 +801,12 @@ position:relative;overflow:hidden;font-size:2rem;
     </div>
 
 ```
-<div class="deck-pile" id="deckPile">
+<div class="deck-pile shake-ready" id="deckPile" onclick="doShuffle()">
   <div class="deck-pile-card"></div>
   <div class="deck-pile-card"></div>
   <div class="deck-pile-card"></div>
 </div>
+<p class="shake-hint" id="shakeHint">shake your phone — or tap the deck</p>
 <button class="shuffle-btn" id="shuffleBtn" onclick="doShuffle()">✦ Shuffle the Deck</button>
 ```
 
@@ -735,7 +825,9 @@ position:relative;overflow:hidden;font-size:2rem;
       <span class="draw-pill-count" id="drawCount">0 / 10</span>
       <div class="draw-pips" id="drawPips"></div>
     </div>
-    <div class="fan-stage" id="fanStage"></div>
+    <div class="fan-stage" id="fanStage">
+      <div class="fan-drag-hint" id="fanDragHint">drag your finger across the cards — hold to choose</div>
+    </div>
   </div>
 
   <!-- PHASE 3: SPREAD + READING -->
@@ -1115,6 +1207,60 @@ function buildFan() {
       el.addEventListener('click', () => onFanClick(i));
       stage.appendChild(el);
     }
+
+    // Attach gesture system to the stage with card position data
+    const cardData = Array.from(stage.querySelectorAll('.fan-card'))
+      .map(el => ({
+        slot:  parseInt(el.dataset.slot),
+        el:    el,
+      }));
+    attachFanGestures(stage, cardData);
+
+    // Add hold-ring SVG and burst div to each card
+    stage.querySelectorAll('.fan-card').forEach(el => {
+      // Hold progress ring (SVG circle stroke-dashoffset animation)
+      const ring = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      ring.setAttribute('class','hold-ring');
+      ring.setAttribute('viewBox','0 0 36 36');
+      ring.innerHTML =
+        `<circle cx="18" cy="18" r="14" fill="none" stroke="rgba(212,114,42,.25)" stroke-width="2"/>` +
+        `<circle cx="18" cy="18" r="14" fill="none" stroke="var(--accent-orange)" stroke-width="2.5"` +
+        ` stroke-dasharray="88" stroke-dashoffset="88" stroke-linecap="round"` +
+        ` style="transform:rotate(-90deg);transform-origin:50% 50%;` +
+        `transition:stroke-dashoffset ${HOLD_MS}ms linear;"` +
+        ` class="hold-progress"/>`;
+      el.appendChild(ring);
+
+      // Burst div
+      const burst = document.createElement('div');
+      burst.className = 'select-burst';
+      el.appendChild(burst);
+    });
+
+    // Animate hold-ring on 'holding' class toggle
+    const holdObserver = new MutationObserver(mutations => {
+      mutations.forEach(m => {
+        if (m.attributeName !== 'class') return;
+        const el = m.target;
+        const prog = el.querySelector('.hold-progress');
+        if (!prog) return;
+        if (el.classList.contains('holding')) {
+          // Animate to full circle
+          requestAnimationFrame(() => prog.style.strokeDashoffset = '0');
+        } else {
+          // Reset instantly
+          prog.style.transition = 'none';
+          prog.style.strokeDashoffset = '88';
+          requestAnimationFrame(() => {
+            prog.style.transition = `stroke-dashoffset ${HOLD_MS}ms linear`;
+          });
+        }
+      });
+    });
+    stage.querySelectorAll('.fan-card').forEach(el =>
+      holdObserver.observe(el, {attributes: true})
+    );
+
   });
 }
 
@@ -1552,10 +1698,17 @@ function openModal(pi) {
   const card = assignedCards[pi];
   const pos  = POSITIONS[pi];
 
-  document.getElementById('mBadge').textContent   = `Position ${toRoman(pos.num)} — ${pos.label}`;
-  document.getElementById('mName').textContent    = card.name;
-  document.getElementById('mPos').textContent     = pos.context;
-  document.getElementById('mMeaning').innerHTML   = card.meaning;
+  const isZhModal = currentLang === 'zh';
+  const zhPos  = isZhModal ? ZH_POSITIONS[pi] : pos;
+  const cardIdx = DB.indexOf(card);
+  const displayNameModal = isZhModal ? (ZH_CARD_NAMES[cardIdx] || card.name) : card.name;
+  const displayMeaning   = isZhModal ? (ZH_MEANINGS[cardIdx]   || card.meaning) : card.meaning;
+  const posLabel = isZhModal ? `第${zhPos.num}位 — ${zhPos.label}` : `Position ${toRoman(pos.num)} — ${pos.label}`;
+
+  document.getElementById('mBadge').textContent   = posLabel;
+  document.getElementById('mName').textContent    = displayNameModal;
+  document.getElementById('mPos').textContent     = isZhModal ? zhPos.context : pos.context;
+  document.getElementById('mMeaning').innerHTML   = displayMeaning;
 
   const artEl = document.getElementById('mArt');
   const symEl = document.getElementById('mSym');
@@ -1609,6 +1762,9 @@ function doReset() {
   document.getElementById('celticCross').innerHTML   = '';
   document.getElementById('readingPara').innerHTML   = '';
   document.getElementById('readingBullets').style.display  = 'none';
+  // Restore At a Glance label visibility for EN
+  const gl = document.querySelector('#readingBullets .reading-section-label');
+  if (gl) gl.style.display = '';
   document.getElementById('readingLoading').style.display  = 'none';
   document.getElementById('readingBoxTitle').textContent   = 'Your Reading';
   document.getElementById('drawCount').textContent   = '0 / 10';
@@ -1763,7 +1919,7 @@ function openLibModal(dbIdx) {
   document.getElementById('mBadge').textContent   = suitLabelMap[suit] || suit;
   document.getElementById('mName').textContent    = displayName;
   document.getElementById('mPos').textContent     = L.card_meaning_lbl;
-  document.getElementById('mMeaning').innerHTML   = card.meaning;
+  document.getElementById('mMeaning').innerHTML   = isZh ? (ZH_MEANINGS[dbIdx] || card.meaning) : card.meaning;
   document.querySelector('.modal-mlabel').textContent = L.modal_interp;
 
   const artEl = document.getElementById('mArt');
@@ -2032,6 +2188,88 @@ const ZH_KEYWORDS = [
   ['实际的温暖','滋养的丰盛','踏实而慷慨'],
   ['物质掌握','耐心的管理','体现的、从容的成功']
 ];
+/* ── Mandarin card meanings (upright + reversed) ── */
+const ZH_MEANINGS = [
+  `<strong>正位：</strong>新的开始、纯真、自发性、拥抱未知、信念的飞跃。<br><strong>逆位：</strong>鲁莽、害怕改变、犹豫不决、逃避现实、愚蠢的冒险。`,
+  `<strong>正位：</strong>显化、意志力、创造力、资源运用得当、行动力、沟通技巧。<br><strong>逆位：</strong>操纵、未开发的潜能、诡计、计划不周、才能被浪费。`,
+  `<strong>正位：</strong>直觉、神秘、潜意识、内在智慧、静止、等待。<br><strong>逆位：</strong>忽视直觉、隐藏的秘密、表面化的判断、焦虑、内在失衡。`,
+  `<strong>正位：</strong>丰收、生育、滋养、美丽、自然、感官享受。<br><strong>逆位：</strong>创意受阻、依赖他人、缺乏成长、懒惰、家庭纠纷。`,
+  `<strong>正位：</strong>权威、结构、稳定、领导力、父亲形象、理性。<br><strong>逆位：</strong>僵化、独裁、缺乏纪律、控制欲过强、不成熟。`,
+  `<strong>正位：</strong>传统、信仰、精神指引、遵从、教育、婚姻。<br><strong>逆位：</strong>挑战传统、非正统、叛逆、束缚、错误的建议。`,
+  `<strong>正位：</strong>爱、和谐、价值观的选择、关系、性结合、吸引力。<br><strong>逆位：</strong>不和谐、失衡、沟通不畅、承诺恐惧、三角关系。`,
+  `<strong>正位：</strong>决心、意志力、胜利、自我控制、旅行、克服困难。<br><strong>逆位：</strong>失控、侵略性、缺乏方向、失败、停滞不前。`,
+  `<strong>正位：</strong>勇气、耐心、同情心、内在力量、驯服野兽。<br><strong>逆位：</strong>自我怀疑、软弱、冲动、脆弱、被欲望控制。`,
+  `<strong>正位：</strong>内省、孤独、寻找指引、智慧、退隐、内在之光。<br><strong>逆位：</strong>孤立、寂寞、拒绝帮助、逃避现实、偏执。`,
+  `<strong>正位：</strong>命运、转折点、好运、因果、周期循环、机遇。<br><strong>逆位：</strong>坏运气、抗拒改变、打断、失控、厄运。`,
+  `<strong>正位：</strong>公平、真相、因果报应、法律、诚实、责任。<br><strong>逆位：</strong>不公、欺骗、逃避责任、偏袒、失衡。`,
+  `<strong>正位：</strong>牺牲、换个角度、等待、放手、顺从、暂停。<br><strong>逆位：</strong>停滞不前、犹豫、无谓的牺牲、固执、拖延。`,
+  `<strong>正位：</strong>结束、转变、新生、放手、蜕变、不可避免的改变。<br><strong>逆位：</strong>抗拒改变、停滞、恐惧新生、苟延残喘、无法放手。`,
+  `<strong>正位：</strong>平衡、适度、耐心、调和、和谐、管理。<br><strong>逆位：</strong>失衡、冲突、急躁、效率低、不融洽。`,
+  `<strong>正位：</strong>束缚、物质主义、阴影面、依赖、欲望、上瘾。<br><strong>逆位：</strong>挣脱束缚、重获主权、摆脱依赖、觉醒。`,
+  `<strong>正位：</strong>剧变、突然的改变、觉醒、混乱、破产、信念崩塌。<br><strong>逆位：</strong>避免灾难、恐惧改变、勉强维持、即将发生的危机。`,
+  `<strong>正位：</strong>希望、灵感、平静、疗愈、乐观、指引。<br><strong>逆位：</strong>绝望、失去信心、脱节、消极、悲观。`,
+  `<strong>正位：</strong>幻觉、恐惧、焦虑、潜意识、迷惑、谎言。<br><strong>逆位：</strong>真相揭露、释放恐惧、清晰、克服困境。`,
+  `<strong>正位：</strong>喜悦、成功、活力、乐观、正能量、结婚、诞生。<br><strong>逆位：</strong>短暂的悲伤、缺乏热情、挫折、悲观、孤独。`,
+  `<strong>正位：</strong>重生、觉醒、召唤、宽恕、决定性时刻、升华。<br><strong>逆位：</strong>自我怀疑、拒绝觉醒、后悔、停滞、软弱。`,
+  `<strong>正位：</strong>完成、成就、整合、旅行、圆满、归属感。<br><strong>逆位：</strong>未完成、缺乏结束感、失望、无法达到目标。`,
+  `<strong>正位：</strong>新行动、灵感、创造力的火花、机遇、开始。<br><strong>逆位：</strong>延迟、缺乏动力、受挫、虚假的开始。`,
+  `<strong>正位：</strong>未来规划、决定、胆识、个人领地。<br><strong>逆位：</strong>恐惧未知、坏计划、犹豫不决。`,
+  `<strong>正位：</strong>扩张、远见、海外机会、领导力。<br><strong>逆位：</strong>障碍、延误、目光短浅、合作不佳。`,
+  `<strong>正位：</strong>庆祝、和谐、家庭、稳定、完工。<br><strong>逆位：</strong>过渡期、不稳定、缺乏支持、不受欢迎。`,
+  `<strong>正位：</strong>冲突、竞争、分歧、挑战、争执。<br><strong>逆位：</strong>内部冲突、避免冲突、解决分歧。`,
+  `<strong>正位：</strong>胜利、好消息、进步、自信、认可。<br><strong>逆位：</strong>失败、骄傲自大、背叛、延迟的成功。`,
+  `<strong>正位：</strong>防御、勇气、面对逆境、优势。<br><strong>逆位：</strong>屈服、不堪重负、缺乏自信。`,
+  `<strong>正位：</strong>速度、行动、迅速、通讯、自由。<br><strong>逆位：</strong>慌乱、延误、计划外、焦虑。`,
+  `<strong>正位：</strong>韧性、最后防线、坚持、防备。<br><strong>逆位：</strong>脆弱、耗尽、偏执、放弃。`,
+  `<strong>正位：</strong>负担、压力、责任、成功但疲惫。<br><strong>逆位：</strong>崩溃、精疲力尽、卸下重担。`,
+  `<strong>正位：</strong>新消息、热情、精力、探索。<br><strong>逆位：</strong>坏消息、缺乏方向、不成熟。`,
+  `<strong>正位：</strong>能量、激情、冲动、冒险、旅程。<br><strong>逆位：</strong>嫉妒、竞争、鲁莽、毁灭。`,
+  `<strong>正位：</strong>自信、精力充沛、独立、温暖。<br><strong>逆位：</strong>苛求、嫉妒、情绪不稳定。`,
+  `<strong>正位：</strong>领导力、远见、成熟、创造性思维。<br><strong>逆位：</strong>霸道、冲动、完美主义。`,
+  `<strong>正位：</strong>新感情、同情、直觉、丰盛。<br><strong>逆位：</strong>情感空虚、心碎、压抑、失落。`,
+  `<strong>正位：</strong>结合、吸引、伙伴关系、平等。<br><strong>逆位：</strong>不平等、误解、分离、沟通不畅。`,
+  `<strong>正位：</strong>庆祝、友谊、团体、欢乐、重逢。<br><strong>逆位：</strong>过度放纵、八卦、孤立、单恋。`,
+  `<strong>正位：</strong>冷漠、沉思、厌倦、冷漠。<br><strong>逆位：</strong>重获动力、新机遇、清醒。`,
+  `<strong>正位：</strong>失落、悲伤、悔恨、沉湎过去。<br><strong>逆位：</strong>接受、向前看、疗愈、原谅。`,
+  `<strong>正位：</strong>怀旧、童年、回忆、礼物、单纯。<br><strong>逆位：</strong>沉溺过去、不切实际、困住。`,
+  `<strong>正位：</strong>幻想、选择、一厢情愿。<br><strong>逆位：</strong>清晰、抉择、脚踏实地、清醒。`,
+  `<strong>正位：</strong>离开、寻找更高目标、失望、勇气。<br><strong>逆位：</strong>恐惧改变、滞留、逃避问题。`,
+  `<strong>正位：</strong>愿望达成、满足、舒适、享受。<br><strong>逆位：</strong>不满、贪婪、表面快乐、空虚。`,
+  `<strong>正位：</strong>情感满足、和谐、家庭、幸福。<br><strong>逆位：</strong>家庭冲突、不和谐、价值观不合。`,
+  `<strong>正位：</strong>创意、直觉、新消息、温柔、孩子气。<br><strong>逆位：</strong>创意受阻、情绪不稳定、敏感、消息延误。`,
+  `<strong>正位：</strong>浪漫、魅力、邀请、理想主义。<br><strong>逆位：</strong>情绪波动、嫉妒、失望、花心。`,
+  `<strong>正位：</strong>同情、疗愈、直觉、情感安全。<br><strong>逆位：</strong>情感勒索、不安全感、依赖、自我牺牲。`,
+  `<strong>正位：</strong>情绪控制、外交、忠告、宽容。<br><strong>逆位：</strong>情绪操纵、压抑、冷漠、无情。`,
+  `<strong>正位：</strong>清晰、突破、新想法、正义、胜利。<br><strong>逆位：</strong>困惑、混乱、残酷、冲突。`,
+  `<strong>正位：</strong>僵局、逃避、和平、难以抉择。<br><strong>逆位：</strong>解除僵局、真相揭露、挣扎、混乱。`,
+  `<strong>正位：</strong>心碎、悲伤、失落、分离、眼泪。<br><strong>逆位：</strong>疗愈、宽恕、放下伤痛、压抑。`,
+  `<strong>正位：</strong>休息、恢复、沉思、退隐。<br><strong>逆位：</strong>精疲力尽、压力、过度劳累。`,
+  `<strong>正位：</strong>冲突、欺凌、紧张、不择手段。<br><strong>逆位：</strong>和解、放下自尊、过去的冲突。`,
+  `<strong>正位：</strong>过渡、放下、疗愈、顺其自然。<br><strong>逆位：</strong>停滞、抗拒改变、沉湎过去。`,
+  `<strong>正位：</strong>欺骗、诡计、策略、隐秘行动。<br><strong>逆位：</strong>清醒、直面后果、坦白。`,
+  `<strong>正位：</strong>束缚、孤立、无力感、自我设限。<br><strong>逆位：</strong>释放、重获自由、看到希望。`,
+  `<strong>正位：</strong>焦虑、噩梦、绝望、内耗。<br><strong>逆位：</strong>战胜恐惧、希望、平静、释放。`,
+  `<strong>正位：</strong>毁灭、失败、背叛、痛苦的结局。<br><strong>逆位：</strong>重生、学习教训、恢复、反弹。`,
+  `<strong>正位：</strong>警觉、好奇心、新消息、沟通。<br><strong>逆位：</strong>谣言、欺骗、窥视、不成熟。`,
+  `<strong>正位：</strong>直接、武断、快速行动、辩论。<br><strong>逆位：</strong>霸道、冲动、破坏性、争论。`,
+  `<strong>正位：</strong>诚实、敏锐、公正、独立。<br><strong>逆位：</strong>尖酸、残忍、偏见、孤独。`,
+  `<strong>正位：</strong>理智、权威、纪律、结构。<br><strong>逆位：</strong>暴政、操纵、严厉、无情。`,
+  `<strong>正位：</strong>新财务开始、富足、机会、繁荣。<br><strong>逆位：</strong>错失机会、贪婪、财务危机、不育。`,
+  `<strong>正位：</strong>平衡、灵活、娱乐、适应力。<br><strong>逆位：</strong>失去平衡、不堪重负、财务纠纷。`,
+  `<strong>正位：</strong>团队合作、技能、质量、计划。<br><strong>逆位：</strong>缺乏团队精神、未充分利用技能、平庸。`,
+  `<strong>正位：</strong>节俭、控制、保守、财产、安全感。<br><strong>逆位：</strong>贪婪、挥霍、僵化、财务障碍。`,
+  `<strong>正位：</strong>贫困、孤立、不安全感、失业、精神空虚。<br><strong>逆位：</strong>恢复、精神疗愈、积极改变。`,
+  `<strong>正位：</strong>给予、接受、慷慨、慈善、分享。<br><strong>逆位：</strong>不平等、债务、贿赂、自私。`,
+  `<strong>正位：</strong>评估、回报、暂停、耐心、反思。<br><strong>逆位：</strong>不耐烦、低回报、焦虑、投资损失。`,
+  `<strong>正位：</strong>学徒、专注、勤奋、技能提升。<br><strong>逆位：</strong>缺乏专注、单调、野心不足、马虎。`,
+  `<strong>正位：</strong>自律、自足、奢华、成就、独立。<br><strong>逆位：</strong>安全感幻灭、过度保护、杂乱、孤立。`,
+  `<strong>正位：</strong>财富、传承、家庭、稳定、长期成功。<br><strong>逆位：</strong>财务纠纷、家族争斗、失去遗产、动荡。`,
+  `<strong>正位：</strong>新技能、学习、专注、讯息、野心。<br><strong>逆位：</strong>缺乏进展、不切实际、浪费天赋。`,
+  `<strong>正位：</strong>效率、保守、勤奋、责任感。<br><strong>逆位：</strong>停滞、懒惰、缺乏方向、麻木。`,
+  `<strong>正位：</strong>养育、务实、丰盛、自然、舒适。<br><strong>逆位：</strong>财务不安全、忽视自我、依赖。`,
+  `<strong>正位：</strong>财富、商业头脑、安全、领导力、务实。<br><strong>逆位：</strong>物质主义、贪婪、挥霍、不稳定。`,
+];
+
 /* ── Mandarin position labels ── */
 const ZH_POSITIONS = [
   {num:1,  label:'当下',    context:'此牌反映你当前的处境'},
@@ -2048,117 +2286,185 @@ const ZH_POSITIONS = [
 
 /* ── Mandarin reading engine constants ── */
 const ZH_CAT_OPEN = {
-  general: '十张牌已落定——它们共同描绘出你所处位置与前行方向的轮廓。',
-  love:    '这副牌以心为镜——所显现的，正是塑造你情感连结、渴望与模式的深层力量。',
-  wealth:  '以物质生活为透镜，这副牌照见了围绕你的资源、努力与财运方向运作的力量。'
+  general: '十张牌已落定。',
+  love:    '十张牌已落定。',
+  wealth:  '十张牌已落定。'
 };
 const ZH_CAT_CLOSE = {
-  general: '解读不能改变现实，但能让你看清它——让你以更清醒的意图选择接下来的路。',
-  love:    '爱不是固定的终点。牌所揭示的，是道路当下的形状——由你自己选择如何走。',
-  wealth:  '丰盛源于清明。牌展示的是当下的条件——选择权始终完全属于你。'
+  general: '',
+  love:    '',
+  wealth:  ''
 };
 
-/* ── Mandarin reading overviews ── */
+/* ── Mandarin reading engine (new format) ──────────────────────
+   Output structure:
+   - zhBuildOverview: intro paragraph per format spec
+   - zhBuildBullets:  returns [{label, text}] with section headers
+     embedded as HTML, plus a 建议 bullet list
+   ─────────────────────────────────────────────────────────── */
+
 function zhBuildOverview(cards, category) {
-  const idx = (i) => DB.indexOf(cards[i]);
-  const c   = (i) => ZH_CARD_NAMES[idx(i)] || cards[i].name;
-  const k0  = (i) => (ZH_KEYWORDS[idx(i)] || cards[i].keywords)[0];
-  const k1  = (i) => (ZH_KEYWORDS[idx(i)] || cards[i].keywords)[1];
+  const ix  = (i) => DB.indexOf(cards[i]);
+  const c   = (i) => '<strong>' + (ZH_CARD_NAMES[ix(i)] || cards[i].name) + '</strong>';
+  const k   = (i) => '<em>' + (ZH_KEYWORDS[ix(i)] || cards[i].keywords)[0] + '</em>';
+
+  // Position labels
+  const POS = ['当下','阻碍','上方','根基','过去','未来','自我','环境','希望与恐惧','结果'];
+
+  // Build intro: state card + position + what it means directly
+  // Format: **CardName**在[position]位置，表示*keyword*。
+  let intro = '十张牌已落定。';
+  intro += c(0) + '在' + POS[0] + '位置，表示' + k(0) + '。';
+  intro += c(1) + '是主要阻碍，意味着' + k(1) + '。';
+  intro += c(5) + '在' + POS[5] + '，' + k(5) + '即将到来。';
+  intro += c(9) + '指向最终结果——' + k(9) + '。';
 
   if (category === 'love') {
-    return `${c(0)}位于牌阵的情感中心——<strong>${k0(0)}</strong>是此刻你情感连结中活跃的品质。` +
-      `${c(1)}与之交叉，带来<strong>${k0(1)}</strong>，这是定义内心正在经历的考验与摩擦的力量。` +
-      `向你走来的是${c(5)}，携带着<strong>${k0(5)}</strong>的能量。` +
-      `若以诚实与专注回应这些力量，${c(9)}预示着<strong>${k0(9)}</strong>——你的情感关系正悄然倾向的方向。`;
+    intro += c(6) + '在' + POS[6] + '，你目前是' + k(6) + '的状态。';
+    intro += c(7) + '在' + POS[7] + '，周围的人带来' + k(7) + '。';
   }
   if (category === 'wealth') {
-    return `在物质层面，此刻由<strong>${k0(0)}</strong>塑造——${c(0)}位于中心，命名了当前主导你资源与努力的能量。` +
-      `${c(1)}代表阻力：<strong>${k0(1)}</strong>是建设之路必须穿越的。` +
-      `${c(5)}将<strong>${k0(5)}</strong>带入视野，而${c(9)}指向<strong>${k0(9)}</strong>——若当前模式延续，这将是最可能的归宿。`;
+    intro += c(3) + '在' + POS[3] + '，你的财务基础是' + k(3) + '。';
+    intro += c(2) + '在' + POS[2] + '，你的目标是' + k(2) + '。';
   }
-  return `${c(0)}位于你当下所站之处的核心——<strong>${k0(0)}</strong>是此刻最具决定意义的品质。` +
-    `与之交叉的是${c(1)}，<strong>${k0(1)}</strong>的能量，那股既考验又塑造你道路的力量。` +
-    `身后，<strong>${k1(4)}</strong>正在松开它的握持；前方，${c(5)}将<strong>${k0(5)}</strong>带入你的近期地平线。` +
-    `${c(9)}作为结果，述说着<strong>${k0(9)}</strong>——这些力量已在悄然走向的方向。`;
+
+  return intro;
 }
 
-/* ── Mandarin bullets ── */
 function zhBuildBullets(cards, category) {
-  const idx = (i) => DB.indexOf(cards[i]);
-  const c   = (i) => ZH_CARD_NAMES[idx(i)] || cards[i].name;
-  const k0  = (i) => (ZH_KEYWORDS[idx(i)] || cards[i].keywords)[0];
-  const k1  = (i) => (ZH_KEYWORDS[idx(i)] || cards[i].keywords)[1];
+  const ix  = (i) => DB.indexOf(cards[i]);
+  const c   = (i) => '<strong>' + (ZH_CARD_NAMES[ix(i)] || cards[i].name) + '</strong>';
+  const k   = (i) => '<em>' + (ZH_KEYWORDS[ix(i)] || cards[i].keywords)[0] + '</em>';
+  const k1  = (i) => '<em>' + ((ZH_KEYWORDS[ix(i)] || cards[i].keywords)[1] || '') + '</em>';
 
+  // Derive suit-based characteristics for love / wealth
+  const selfSuit   = cards[6].id.split('_')[0];
+  const crownSuit  = cards[2].id.split('_')[0];
+  const rootSuit   = cards[3].id.split('_')[0];
+
+  // ── 建议 bullet list (共用) ──────────────────────────────────
+  // Derive 4 direct action verbs from the cards
+  const adviceVerbs = {
+    major:  '接受', wands: '行动', cups: '感受', swords: '说出', penta: '执行'
+  };
+  const presentSuit = cards[0].id.split('_')[0];
+  const futureSuit  = cards[5].id.split('_')[0];
+  const challengeSuit = cards[1].id.split('_')[0];
+  const outcomeSuit   = cards[9].id.split('_')[0];
+
+  // ── GENERAL ─────────────────────────────────────────────────
   if (category === 'general') {
+    const stateText =
+      c(0) + '在当下位置。你现在处于' + k(0) + '的状态。' +
+      c(3) + '是你的根基，代表' + k(3) + '。';
+
+    const wealthText =
+      c(3) + '在根基位置，你的物质基础是' + k(3) + '。' +
+      c(2) + '在上方，你的财务目标是' + k(2) + '。' +
+      c(1) + '是主要阻力，需要面对' + k(1) + '。';
+
+    const loveText =
+      c(6) + '在自我位置，你带入关系的是' + k(6) + '。' +
+      c(5) + '在未来，感情方向是' + k(5) + '。';
+
+    const adviceBullets =
+      '• 停下来看清' + c(0) + '带来的' + k(0) + '<br>' +
+      '• 面对' + c(1) + '代表的' + k(1) + '<br>' +
+      '• 让' + c(4) + '的' + k(4) + '完成离去<br>' +
+      '• 朝' + c(5) + '的方向走——' + k(5) + '<br>' +
+      '• 像' + c(9) + '指示的那样——' + k(9);
+
     return [
-      { icon:'◈', label:'综合运势',
-        text:`${c(0)}位于中心，标志着这是一段<strong>${k0(0)}</strong>的时期。${c(9)}作为结果，暗示当前的力量正朝向<strong>${k0(9)}</strong>流动——以耐心持守这个方向，道路将愈加清晰。`},
-      { icon:'🪙', label:'财富与资源',
-        text:`${c(3)}位于牌阵根基，以<strong>${k0(3)}</strong>述说你目前所站立的物质基础。${c(2)}高悬其上，指向<strong>${k0(2)}</strong>作为当前视野中的财务抱负；而${c(1)}则点明了你与目标之间最主要的阻力。`},
-      { icon:'◇', label:'爱情与关系',
-        text:`在情感层面，${c(6)}显示你目前带入关系的品质是<strong>${k0(6)}</strong>。即将到来的${c(5)}携带着<strong>${k0(5)}</strong>——一股将在近期为你最亲密的情感关系着色的能量。`},
-      { icon:'☽', label:'灵性与内在',
-        text:`${c(2)}作为最高理想，反映出内心对<strong>${k0(2)}</strong>的深层朝向。${c(8)}浮现于希望与恐惧之位，带来<strong>${k0(8)}</strong>——那个内心最深的渴望与抗拒仍在学习彼此辨认的边界。`}
+      { icon:'◈', label:'【当前状态】', text: stateText },
+      { icon:'🪙', label:'【财富】',     text: wealthText },
+      { icon:'◇', label:'【爱情】',     text: loveText },
+      { icon:'☽', label:'【建议】',     text: adviceBullets },
     ];
   }
+
+  // ── LOVE ────────────────────────────────────────────────────
   if (category === 'love') {
-    const selfSuit = cards[6].id.split('_')[0];
-    const tempMap  = {
-      major:'深邃内省的灵魂——感受深沉，在行动前于内心静静消化',
-      wands:'火热激情的性情——充满活力、自发，在爱中充满理想主义',
-      cups: '深度共情、情感直觉丰富的本质——浪漫、敏感，渴望真正的灵魂连结',
-      swords:'思维敏锐、重视诚实与清晰的存在——视智识共鸣高于表演',
-      penta:'踏实、忠诚、可靠的性格——爱以可靠、陪伴与实际关怀来表达'
+    const charMap = {
+      major:  '你是深思型的人。你在爱中需要深度和意义。',
+      wands:  '你是行动型的人。你在爱中主动，热情。',
+      cups:   '你是感受型的人。你在爱中细腻，容易受伤。',
+      swords: '你是思考型的人。你需要诚实，不能接受欺骗。',
+      penta:  '你是稳定型的人。你用行动表达爱，不善于言辞。'
     };
-    const envSuit = cards[7].id.split('_')[0];
-    const compatMap = {
-      major:'与你深度匹配的人——能陪你坐在复杂中而不急于解决',
-      wands:'带来温暖与生命力的人——以热情回应你，而不将其耗尽',
-      cups: '情感上真正可及、温柔且愿意被完全看见的人',
-      swords:'诚实、直接且思维活跃的人——尊重你到足以告诉你真相',
-      penta:'稳定、持续、在场的人——爱以时间中持续的行动而非宏大姿态来展现'
-    };
+
+    const stateText =
+      c(0) + '在当下，你的感情状态是' + k(0) + '。' +
+      c(1) + '是阻碍，你需要面对' + k(1) + '。';
+
+    const loveDetail =
+      c(6) + '在自我位置。' + (charMap[selfSuit] || '你有复杂的情感本质。') +
+      c(7) + '在环境，周围带来' + k(7) + '。' +
+      c(8) + '在希望与恐惧，你既想要又害怕' + k(8) + '。';
+
+    const adviceBullets =
+      '• 停下来问自己：你真正想要的是什么<br>' +
+      '• 面对' + c(1) + '——不要绕开' + k(1) + '<br>' +
+      '• 让' + c(4) + '的过去完成<br>' +
+      '• 像' + c(9) + '显示的那样——' + k(9) + '是可以达到的<br>' +
+      '• 说出你真实的感受，不要表演';
+
     return [
-      { icon:'◇', label:'建议',
-        text:`${c(1)}作为交叉影响，暗示<strong>${k0(1)}</strong>是当前值得审视的情感模式。牌阵的建议：放慢脚步，分辨你真实的感受与你学会表演的部分。${c(6)}提醒你：你如何看待自己，在关系开始之前便已塑造了每一次连结。`},
-      { icon:'✦', label:'最佳行动方向',
-        text:`${c(5)}携带着<strong>${k0(5)}</strong>向你走来，最契合的行动是主动朝这个方向倾身，而非抗拒。${c(9)}作为目标——<strong>${k0(9)}</strong>——不靠追求而至，靠你带入当下的存在品质。让${c(4)}完成它的离去；向回伸手只会拖慢已准备前行的事物。`},
-      { icon:'☽', label:'性格特质',
-        text:`牌指向：<strong>${tempMap[selfSuit]||'复杂而多层次的情感本质'}</strong>。在关系中，你倾向于${c(8)}的领域——<strong>${k0(8)}</strong>——在那里，你对爱的希望与恐惧戴着同一张面孔，需要耐心的辨别。与你能量最共鸣的人是：${compatMap[envSuit]||'以同等真诚与深度与你相遇的人'}。`}
+      { icon:'◇', label:'【当前状态】', text: stateText },
+      { icon:'☽', label:'【爱情】',     text: loveDetail },
+      { icon:'✦', label:'【建议】',     text: adviceBullets },
     ];
   }
+
+  // ── WEALTH ──────────────────────────────────────────────────
   if (category === 'wealth') {
-    const crownSuit = cards[2].id.split('_')[0];
     const careerMap = {
-      major:'具有重大意义、影响力或超越交易性价值的角色——领导力、咨询、精神引导，或任何能改变生命的领域',
-      wands:'创业、创意产业、媒体、表演、品牌策略，或任何由愿景与能量驱动的领域',
-      cups: '医疗保健、心理咨询、艺术、酒店、教育，或植根于人际连结与情感智慧的工作',
-      swords:'法律、研究、写作、科技、分析、战略，或任何奖励清晰思维与精准能力的领域',
-      penta:'金融、房地产、建筑、农业、手工艺，或任何以长期建设实在价值为根基的行业'
+      major:  '领导、咨询、教育、或有影响力的工作。',
+      wands:  '创业、媒体、创意产业、或品牌。',
+      cups:   '医疗、教育、心理咨询、或服务业。',
+      swords: '法律、科技、写作、或分析工作。',
+      penta:  '金融、房地产、制造业、或手工艺。'
     };
-    const rootSuit = cards[3].id.split('_')[0];
-    const bizMap   = {
-      major:'个人发展、教练、健康或灵性服务——回应人们内心深层问题的行业',
-      wands:'初创企业、数字媒体、活动策划、创意机构，或任何创始人能量本身即是产品的业务',
-      cups: '健康与保健、教育、社群平台，或建立在真实人文关怀上的服务型业务',
-      swords:'咨询、法律服务、SaaS、知识产品，或任何以专业知识与清晰表达为核心的B2B业务',
-      penta:'房产、制造业、餐饮，或任何通过可触、可居住的实物创造价值的行业'
+    const bizMap = {
+      major:  '个人成长、教练、健康、或灵性服务。',
+      wands:  '初创公司、数字媒体、或活动策划。',
+      cups:   '健康、教育、或社群平台。',
+      swords: '咨询、法律服务、或知识产品。',
+      penta:  '房产、制造业、或餐饮。'
     };
+
+    const stateText =
+      c(0) + '在当下，你的财务状态是' + k(0) + '。' +
+      c(1) + '是阻碍，是' + k(1) + '。' +
+      c(3) + '是根基，代表' + k(3) + '。';
+
+    const wealthDetail =
+      c(2) + '在上方，你的财务目标是' + k(2) + '。' +
+      c(5) + '在未来，下一步会遇到' + k(5) + '。' +
+      c(9) + '是结果——' + k(9) + '。';
+
+    const careerText =
+      '职业方向：' + (careerMap[crownSuit] || '适合你的领域。') +
+      '商业方向：' + (bizMap[rootSuit] || '建立实际价值的行业。');
+
+    const adviceBullets =
+      '• 停下来核查' + c(3) + '的根基——' + k(3) + '<br>' +
+      '• 面对' + c(1) + '——' + k(1) + '是真正的阻力<br>' +
+      '• 让' + c(4) + '的旧方式结束<br>' +
+      '• 朝' + c(2) + '的目标走——' + k(2) + '<br>' +
+      '• 像' + c(9) + '显示的——' + k(9) + '是结果';
+
     return [
-      { icon:'🪙', label:'建议',
-        text:`${c(1)}作为交叉牌，点明<strong>${k0(1)}</strong>是当前物质生活中最主要的阻力。牌阵的建议：在扩展屋顶之前，先处理好根基。${c(3)}位于基础，述说<strong>${k0(3)}</strong>——这是你财务稳定当前所依赖的，值得诚实审视再做下一步。`},
-      { icon:'✦', label:'最佳行动方向',
-        text:`${c(5)}携带着<strong>${k0(5)}</strong>向你走来——最契合的行动是有意识地朝这个品质迈进，而非等待环境推动你。${c(9)}——<strong>${k0(9)}</strong>——在你以${c(2)}的抱负<strong>${k0(2)}</strong>为北极星并以此引导近期决策时，便能触及。${c(4)}所承载的——<strong>${k0(4)}</strong>——已完成其使命；放下它，道路将少些负重。`},
-      { icon:'◈', label:'职业方向',
-        text:`牌建议你天然契合：<strong>${careerMap[crownSuit]||'允许自主与有意义贡献的领域'}</strong>。${c(6)}位于自我认知之位，反映<strong>${k0(6)}</strong>是你带入工作的能量——最能彰显这一品质价值的职业环境，是那些奖励<strong>${k1(6)}</strong>的地方。`},
-      { icon:'⊛', label:'商业与行业',
-        text:`对于考虑创业的人，牌指向：<strong>${bizMap[rootSuit]||'建立持久实际价值的行业'}</strong>。${c(7)}位于环境之位——携带<strong>${k0(7)}</strong>——暗示你周围的人与结构当前是助力还是阻力；在投入资源之前，先辨别清楚。${c(8)}点明<strong>${k0(8)}</strong>是需要跨越的内心边界——财务抱负与自我怀疑仍在那里谈判。`}
+      { icon:'🪙', label:'【当前状态】', text: stateText },
+      { icon:'◈', label:'【财富】',     text: wealthDetail },
+      { icon:'⊛', label:'【职业与商业】',text: careerText },
+      { icon:'✦', label:'【建议】',     text: adviceBullets },
     ];
   }
+
   return [];
 }
 
-/* ── Toggle language ── */
+/* ── Toggle language ── *//* ── Toggle language ── */
 function toggleLang() {
   currentLang = currentLang === 'en' ? 'zh' : 'en';
   applyLang();
@@ -2295,6 +2601,10 @@ buildParagraph = function() {
 
   setTimeout(() => {
     document.getElementById('readingLoading').style.display = 'none';
+    // Hide "At a Glance" label — ZH sections have their own 【headers】
+    const glanceLabel = document.getElementById('readingBullets')
+                                .querySelector('.reading-section-label');
+    if (glanceLabel) glanceLabel.style.display = 'none';
     const overview = ZH_CAT_OPEN[cat] + zhBuildOverview(assignedCards, cat) + ZH_CAT_CLOSE[cat];
     const bullets  = zhBuildBullets(assignedCards, cat);
     typeText(document.getElementById('readingPara'), overview, () => {
@@ -2303,22 +2613,241 @@ buildParagraph = function() {
   }, 900);
 };
 
-/* ── Patch openModal to use ZH position labels ── */
-const _origOpenModal = openModal;
-openModal = function(pi) {
-  _origOpenModal(pi);
-  if (currentLang === 'zh') {
-    const zhPos = ZH_POSITIONS[pi];
-    const card  = assignedCards[pi];
-    const zhName= ZH_CARD_NAMES[DB.indexOf(card)] || card.name;
-    document.getElementById('mBadge').textContent = `第${zhPos.num}位 — ${zhPos.label}`;
-    document.getElementById('mName').textContent  = zhName;
-    document.getElementById('mPos').textContent   = zhPos.context;
-    document.querySelector('.modal-mlabel').textContent = LANG.zh.modal_interp;
-  }
-};
+/* openModal handles ZH natively — patch removed */
 
 /* openLibModal handles language natively — no patch needed */
+
+
+/* ============================================================
+   GESTURE SYSTEM
+   Three interactions:
+   1. SHAKE — DeviceMotion accelerometer triggers shuffle
+   2. DRAG  — touchmove across fan lifts cards the finger passes
+   3. HOLD  — lingering touch on a card (300ms) selects it
+              without requiring a clean tap (more intentional feel)
+   ============================================================ */
+
+// ── 1. SHAKE TO SHUFFLE ──────────────────────────────────────
+let _shakeLastTime  = 0;
+let _shakeCooldown  = false;
+let _shakeListening = false;
+
+function startShakeListener() {
+  if (_shakeListening) return;
+
+  // iOS13+ requires permission
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    DeviceMotionEvent.requestPermission()
+      .then(state => {
+        if (state === 'granted') _attachShakeHandler();
+      })
+      .catch(() => {});
+  } else if (typeof DeviceMotionEvent !== 'undefined') {
+    _attachShakeHandler();
+  }
+}
+
+function _attachShakeHandler() {
+  _shakeListening = true;
+  const THRESHOLD = 18; // m/s² — firm shake required, not accidental movement
+  let   lastX = 0, lastY = 0, lastZ = 0;
+
+  window.addEventListener('devicemotion', (e) => {
+    // Only active on shuffle phase
+    if (!document.getElementById('phase-shuffle').classList.contains('active')) return;
+    if (_shakeCooldown) return;
+
+    const a = e.accelerationIncludingGravity || e.acceleration;
+    if (!a) return;
+    const x = a.x || 0, y = a.y || 0, z = a.z || 0;
+    const delta = Math.abs(x - lastX) + Math.abs(y - lastY) + Math.abs(z - lastZ);
+    lastX = x; lastY = y; lastZ = z;
+
+    if (delta > THRESHOLD) {
+      _shakeCooldown = true;
+      setTimeout(() => _shakeCooldown = false, 1200);
+
+      // Trigger the big shake animation then shuffle
+      const pile = document.getElementById('deckPile');
+      pile.classList.add('big-shaking');
+      pile.addEventListener('animationend', () => {
+        pile.classList.remove('big-shaking');
+        doShuffle();
+      }, {once: true});
+    }
+  });
+
+  // Update hint to confirm shake is active
+  const hint = document.getElementById('shakeHint');
+  if (hint) hint.textContent = 'shake your phone to shuffle — or tap the deck';
+}
+
+// Request shake permission on first user interaction with the shuffle screen
+document.addEventListener('DOMContentLoaded', () => {
+  // Try to attach without permission first (Android, older iOS)
+  startShakeListener();
+});
+
+// iOS needs a gesture to request permission — wire to first tap anywhere on shuffle phase
+document.addEventListener('touchstart', function iosTouchInit() {
+  startShakeListener();
+  document.removeEventListener('touchstart', iosTouchInit);
+}, {once: true, passive: true});
+
+
+// ── 2 & 3. DRAG + HOLD ON FAN ────────────────────────────────
+// These replace the simple click handler with a richer touch system.
+// We attach ONE touchmove listener to the fan STAGE (not each card)
+// to avoid the z-index thrash problem from per-card touch events.
+
+let _holdTimer    = null;   // setTimeout reference for hold
+let _holdSlot     = -1;     // which slot is being held
+let _dragActive   = false;  // finger is moving (drag mode)
+let _dragMoved    = false;  // finger moved more than threshold
+const HOLD_MS     = 320;    // ms to hold before selection triggers
+const DRAG_PX     = 8;      // px movement before it's a drag not a hold
+let _touchStartX  = 0;
+let _touchStartY  = 0;
+let _lastHovered  = -1;     // last card the finger was over (for drag lift)
+
+function attachFanGestures(stage, cardData) {
+  // cardData: array of {slot, el, x, y, w, h, angle}
+  // Built once after cards are created in buildFan()
+
+  function cardAtPoint(cx, cy) {
+    // Find topmost non-drawn card whose bounding rect contains the point
+    // Walk backwards (highest z-index first)
+    for (let i = cardData.length - 1; i >= 0; i--) {
+      const d = cardData[i];
+      if (d.el.classList.contains('drawn')) continue;
+      // Use elementFromPoint for accuracy — handles rotated cards
+      const rect = d.el.getBoundingClientRect();
+      if (cx >= rect.left && cx <= rect.right &&
+          cy >= rect.top  && cy <= rect.bottom) {
+        return d.slot;
+      }
+    }
+    return -1;
+  }
+
+  function clearHold() {
+    if (_holdTimer) { clearTimeout(_holdTimer); _holdTimer = null; }
+    if (_holdSlot >= 0) {
+      const el = document.getElementById(`fc-${_holdSlot}`);
+      if (el) el.classList.remove('holding');
+      _holdSlot = -1;
+    }
+  }
+
+  function clearDragHover() {
+    if (_lastHovered >= 0) {
+      const el = document.getElementById(`fc-${_lastHovered}`);
+      if (el) el.classList.remove('finger-hover');
+      _lastHovered = -1;
+    }
+  }
+
+  function triggerSelect(slot) {
+    clearHold();
+    clearDragHover();
+    // Burst animation
+    const el = document.getElementById(`fc-${slot}`);
+    if (el) {
+      el.classList.add('burst-play');
+      setTimeout(() => el.classList.remove('burst-play'), 400);
+    }
+    onFanClick(slot);
+    // Hide the drag hint once first card chosen
+    const hint = document.getElementById('fanDragHint');
+    if (hint) hint.classList.add('hide');
+  }
+
+  stage.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    _touchStartX = t.clientX;
+    _touchStartY = t.clientY;
+    _dragMoved   = false;
+    _dragActive  = false;
+
+    const slot = cardAtPoint(t.clientX, t.clientY);
+    if (slot < 0 || selectedSlots.includes(slot)) return;
+
+    // Start hold timer
+    _holdSlot = slot;
+    const holdEl = document.getElementById(`fc-${slot}`);
+    if (holdEl) holdEl.classList.add('holding');
+
+    _holdTimer = setTimeout(() => {
+      if (_holdSlot === slot && !_dragMoved) {
+        triggerSelect(slot);
+      }
+    }, HOLD_MS);
+
+  }, {passive: true});
+
+  stage.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - _touchStartX;
+    const dy = t.clientY - _touchStartY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist > DRAG_PX) {
+      _dragMoved  = true;
+      _dragActive = true;
+      // Cancel the hold if finger moved
+      if (_holdTimer) { clearTimeout(_holdTimer); _holdTimer = null; }
+      if (_holdSlot >= 0) {
+        const el = document.getElementById(`fc-${_holdSlot}`);
+        if (el) el.classList.remove('holding');
+        _holdSlot = -1;
+      }
+    }
+
+    if (!_dragActive) return;
+
+    // Lift card under finger, drop previous
+    const slot = cardAtPoint(t.clientX, t.clientY);
+
+    if (slot !== _lastHovered) {
+      clearDragHover();
+      if (slot >= 0 && !selectedSlots.includes(slot)) {
+        const el = document.getElementById(`fc-${slot}`);
+        if (el) el.classList.add('finger-hover');
+        _lastHovered = slot;
+      }
+    }
+  }, {passive: true});
+
+  stage.addEventListener('touchend', (e) => {
+    const t = e.changedTouches[0];
+
+    if (!_dragMoved) {
+      // Clean tap — use existing click handler (already on each card)
+      clearHold();
+      clearDragHover();
+      return;
+    }
+
+    // Drag ended — if finger lifted over a card, select it
+    if (_lastHovered >= 0 && !selectedSlots.includes(_lastHovered)) {
+      triggerSelect(_lastHovered);
+    }
+    clearDragHover();
+    clearHold();
+    _dragActive = false;
+    _dragMoved  = false;
+  }, {passive: true});
+
+  stage.addEventListener('touchcancel', () => {
+    clearHold();
+    clearDragHover();
+    _dragActive = false;
+    _dragMoved  = false;
+  }, {passive: true});
+}
 
 </script>
 
