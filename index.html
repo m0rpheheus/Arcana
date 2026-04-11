@@ -50,7 +50,7 @@
   --accent-wine:   #8b2c2c;
   --border-subtle: rgba(232,180,138,.12);
   --border-accent: rgba(232,180,138,.35);
-  --card-back:     linear-gradient(145deg,#3d1c18 0%,#1a0e0e 50%,#3d1c18 100%);
+  --card-back:     linear-gradient(145deg,#3d1c18 0%,#1a0e0e 50%,#3d1c18 100%);  /* dark card back */
   --nav-height:    64px;
   --t:             .3s cubic-bezier(.4,0,.2,1);
   --t-slow:        .6s cubic-bezier(.4,0,.2,1);
@@ -81,10 +81,13 @@ html{scroll-behavior:smooth;background-color:#1a0e0e !important;color:#f2ddc8}
 [data-theme=“light”] html{background-color:#f5ede3 !important;color:#2a1410}
 body{
 font-family:‘DM Sans’,sans-serif;
-background-color:var(–bg-primary) !important;color:var(–text-primary);
+background-color:var(–bg-primary,#1a0e0e) !important;
+color:var(–text-primary,#f2ddc8);
 height:100vh;overflow:hidden;
 transition:background-color var(–t-slow),color var(–t-slow);
 -webkit-tap-highlight-color:transparent;
+/* Explicit fallbacks in case CSS vars fail */
+-webkit-font-smoothing:antialiased;
 }
 body.scrollable{height:auto;overflow-y:auto !important;overflow-x:hidden}
 
@@ -213,7 +216,8 @@ background:var(–card-back);border:1px solid var(–border-accent);
 
 .shuffle-btn{
 padding:14px 44px;
-background:linear-gradient(135deg,var(–accent-orange),var(–accent-wine));
+background:linear-gradient(135deg,#d4722a,#8b2c2c);
+background:linear-gradient(135deg,var(–accent-orange,#d4722a),var(–accent-wine,#8b2c2c));
 border:none;border-radius:50px;font-family:‘DM Sans’,sans-serif;font-size:.82rem;
 font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#fff;
 cursor:pointer;transition:all var(–t);box-shadow:0 4px 20px rgba(139,44,44,.3);
@@ -622,13 +626,19 @@ font-family:‘Playfair Display’,serif;font-size:.9rem;font-style:italic;
 color:var(–text-muted);cursor:pointer;transition:all var(–t);
 display:flex;flex-direction:column;align-items:center;gap:4px;
 }
-.cat-btn-icon{font-size:1.1rem;opacity:.7}
+.cat-btn-icon{font-size:1.1rem;opacity:.7;color:inherit;font-style:normal}
 .cat-btn:hover{border-color:var(–border-accent);color:var(–text-secondary)}
 .cat-btn.selected{
 background:rgba(212,114,42,.1);border-color:var(–accent-orange);
 color:var(–accent-orange);
 }
-.cat-btn.selected .cat-btn-icon{opacity:1}
+.cat-btn.selected .cat-btn-icon{opacity:1;color:var(–accent-orange)}
+/* Prevent iOS Safari emoji/symbol color override on all icon spans */
+.cat-btn-icon,.reading-bullet-icon,.nav-brand-sym,
+.reading-box-icon,.avail-ico,.p-ok-ico{
+-webkit-text-fill-color:currentColor;
+color:inherit;
+}
 
 .sym-gold{color:#c9920a !important;filter:drop-shadow(0 0 5px rgba(201,146,10,.6))}
 
