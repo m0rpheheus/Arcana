@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>The Arcana — Free Celtic Cross Tarot Reading</title>
+<meta name="description" content="Draw your cards. Reveal your path. A free Celtic Cross tarot reading — 78 cards, 10 positions, instant insight." />
+<meta name="theme-color" content="#1a0e0e" />
+<meta name="color-scheme" content="dark" />
+<link rel="canonical" href="https://the-arcana.netlify.app/" />
+
+<!-- Open Graph -->
+<meta property="og:type"         content="website" />
+<meta property="og:url"          content="https://the-arcana.netlify.app/" />
+<meta property="og:title"        content="The Arcana — Free Celtic Cross Tarot Reading" />
+<meta property="og:description"  content="Draw your cards. Reveal your path. A free Celtic Cross tarot reading — 78 cards, 10 positions, instant insight." />
+<meta property="og:image"        content="https://the-arcana.netlify.app/og-image.png" />
+<meta property="og:image:width"  content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale"       content="en_MY" />
+<meta property="og:site_name"    content="The Arcana" />
+<meta name="twitter:card"        content="summary_large_image" />
+<meta name="twitter:title"       content="The Arcana — Free Celtic Cross Tarot Reading" />
+<meta name="twitter:description" content="Draw your cards. Reveal your path. Free tarot reading — 78 cards, 10 positions." />
+<meta name="twitter:image"       content="https://the-arcana.netlify.app/og-image.png" />
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="The Arcana" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☽</text></svg>" />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<!-- ✦ Stylesheet — must be present in same directory as index.html -->
+<link rel="stylesheet" href="styles.css" />
+
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#" onclick="goHome();return false">
+    <span class="nav-brand-sym">☽</span>
+    <span>The Arcana</span>
+  </a>
+  <ul class="nav-links">
+    <li><a id="nav-reading" class="active" onclick="showPage('reading');return false" data-short="Reading"><span class="nav-label">Free Celtic Cross</span></a></li>
+    <li><a id="nav-personal" onclick="showPage('personal');return false" data-short="Personal"><span class="nav-label">Personal Reading</span></a></li>
+    <li><a id="nav-library" onclick="showPage('library');return false" data-short="Library"><span class="nav-label">Card Library</span></a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="nav-btn" id="langToggle" onclick="toggleLang()" title="Switch language" aria-label="Switch language">EN</button>
+    <button class="nav-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">☀</button>
+  </div>
+</nav>
+
+<!-- PAGE: READING -->
+<div class="page active" id="page-reading">
+
+  <!-- PHASE 1: SHUFFLE -->
+  <div class="phase active" id="phase-shuffle">
+    <div class="intro-eyebrow">Celtic Cross Spread</div>
+    <h1 class="intro-title">Consult the <em>Arcana</em></h1>
+    <p class="intro-sub">Still the mind. Choose your focus — then shuffle when ready.</p>
+    <div class="category-wrap">
+      <span class="category-label">choose your focus</span>
+      <div class="category-btns">
+        <button class="cat-btn" id="cat-general" onclick="selectCategory('general')">
+          <span class="cat-btn-icon">◈</span><span class="cat-label">General</span>
+        </button>
+        <button class="cat-btn" id="cat-love" onclick="selectCategory('love')">
+          <span class="cat-btn-icon">◇</span><span class="cat-label">Love</span>
+        </button>
+        <button class="cat-btn" id="cat-wealth" onclick="selectCategory('wealth')">
+          <span class="cat-btn-icon">✦</span><span class="cat-label">Wealth</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="deck-pile shake-ready" id="deckPile" onclick="doShuffle()">
+      <div class="deck-pile-card"></div>
+      <div class="deck-pile-card"></div>
+      <div class="deck-pile-card"></div>
+    </div>
+    <p class="shake-hint" id="shakeHint">shake your phone — or tap the deck</p>
+    <button class="shuffle-btn" id="shuffleBtn" onclick="doShuffle()">✦ Shuffle the Deck</button>
+  </div>
+
+  <!-- PHASE 2: FAN -->
+  <div class="phase" id="phase-fan">
+    <div class="fan-header">
+      <p class="eyebrow">Choose Your Cards</p>
+      <h2>Select <em>ten</em> cards</h2>
+      <p>Touch each card that calls to you</p>
+    </div>
+    <div class="draw-pill" id="drawPill">
+      <span class="draw-pill-label">Cards Drawn</span>
+      <span class="draw-pill-count" id="drawCount">0 / 10</span>
+      <div class="draw-pips" id="drawPips"></div>
+    </div>
+    <div class="fan-stage" id="fanStage">
+      <div class="fan-drag-hint" id="fanDragHint">drag your finger across the cards — hold to choose</div>
+    </div>
+  </div>
+
+  <!-- PHASE 3: SPREAD + READING -->
+  <div class="phase" id="phase-spread">
+    <div class="spread-header">
+      <p class="eyebrow">The Celtic Cross</p>
+      <h2>Your Reading</h2>
+      <p>Click any card to explore its meaning</p>
+    </div>
+    <div class="celtic-cross" id="celticCross"></div>
+    <div class="reading-box" id="readingBox">
+      <div class="reading-box-hd">
+        <span class="reading-box-icon">✦</span>
+        <span class="reading-box-title" id="readingBoxTitle">Your Reading</span>
+      </div>
+      <div class="reading-box-body">
+        <!-- Loading state -->
+        <div class="reading-loading" id="readingLoading" style="display:none">
+          <div class="reading-spinner"></div>
+          <div class="reading-loading-text">The cards are speaking…</div>
+        </div>
+        <!-- Overview paragraph -->
+        <div class="reading-para" id="readingPara"></div>
+        <!-- Domain bullets -->
+        <div id="readingBullets" style="display:none">
+          <div class="reading-section-divider"></div>
+          <span class="reading-section-label">At a Glance</span>
+          <div class="reading-bullets" id="readingBulletsInner"></div>
+        </div>
+      </div>
+      <div class="reading-box-actions">
+        <button class="btn-out" onclick="doReset()">↺ New Reading</button>
+        <button class="btn-pri" onclick="shareApp()">⇪ Share This Reading</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-reading -->
+
+<!-- PAGE: PERSONAL -->
+<div class="page" id="page-personal">
+  <div class="pers-wrap">
+    <p class="pers-eyebrow">Deep Interpretation</p>
+    <h1 class="pers-title">A Reading <em>Just for You</em></h1>
+    <p class="pers-lead">Beyond the algorithm lies intuition honed over years. Share what weighs on your spirit — a personal reading offers context, nuance, and the space to truly listen.</p>
+    <div class="avail">
+      <span class="avail-ico">🕯</span>
+      <div class="avail-text">
+        <strong>Limited Availability</strong>
+        <span>Request a deep personal interpretation — Response Time: 2–3 Days. Each reading receives full, unhurried attention.</span>
+      </div>
+    </div>
+    <div class="p-form" id="pForm">
+      <div class="p-grp"><label class="p-lbl" for="fName">Your Name</label><input class="p-inp" id="fName" type="text" placeholder="How shall I call you?" /></div>
+      <div class="p-grp"><label class="p-lbl" for="fEmail">Email Address</label><input class="p-inp" id="fEmail" type="email" placeholder="Where shall I send your reading?" /></div>
+      <div class="p-grp">
+        <label class="p-lbl" for="fQ">Your Question</label>
+        <textarea class="p-ta" id="fQ" placeholder="What is weighing on your heart?"></textarea>
+        <p class="p-hint">The more openly you share, the more precisely the cards can speak.</p>
+      </div>
+      <button class="p-sub" onclick="submitForm()">Send My Request →</button>
+      <p class="p-note">Your question is held with care and complete discretion.</p>
+    </div>
+    <div class="p-ok" id="pOk">
+      <div class="p-ok-ico">✦</div>
+      <h3>Your Request Is Received</h3>
+      <p>The cards have noted your inquiry. Expect a personal response within 2–3 days.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-ov" id="modalOv" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <span class="modal-badge" id="mBadge"></span>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-art" id="mArt">
+      <span class="modal-art-sym" id="mSym"></span>
+    </div>
+    <div class="modal-body">
+      <h2 class="modal-name" id="mName"></h2>
+      <p class="modal-pos" id="mPos"></p>
+      <div class="modal-div"></div>
+      <p class="modal-mlabel">Interpretation</p>
+      <p class="modal-meaning" id="mMeaning"></p>
+      <button class="modal-share" onclick="shareApp()">⇪ Share This Reading With a Friend</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PAGE: CARD LIBRARY -->
+<div class="page" id="page-library">
+  <div class="lib-wrap">
+    <div class="lib-header">
+      <h2>The 78 Cards</h2>
+      <p>Your complete deck — tap any card to read its interpretation</p>
+    </div>
+    <div class="lib-filter">
+      <button class="lib-filter-btn active" onclick="filterLib('all',this)">All 78</button>
+      <button class="lib-filter-btn" onclick="filterLib('major',this)">Major Arcana</button>
+      <button class="lib-filter-btn" onclick="filterLib('wands',this)">Wands</button>
+      <button class="lib-filter-btn" onclick="filterLib('cups',this)">Cups</button>
+      <button class="lib-filter-btn" onclick="filterLib('swords',this)">Swords</button>
+      <button class="lib-filter-btn" onclick="filterLib('penta',this)">Pentacles</button>
+    </div>
+    <div class="lib-grid" id="libGrid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<!-- ✦ Application script — loaded at end of body so DOM is ready -->
+<script src="app.js"></script>
+
+</body>
+</html>
