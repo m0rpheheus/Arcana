@@ -459,12 +459,6 @@ document.getElementById(‘cat-’ + cat).classList.add(‘selected’);
 }
 
 // ── Single init on load ──────────────────────────────────────
-document.addEventListener(‘DOMContentLoaded’, () => {
-setupTheme();
-selectCategory(‘general’);
-applyLang(); // set initial EN strings (no-op but ensures state is clean)
-if (‘serviceWorker’ in navigator) navigator.serviceWorker.register(’/sw.js’).catch(()=>{});
-});
 
 /* ============================================================
 READING ENGINE — local template-based, category-aware
@@ -1752,10 +1746,6 @@ if (hint) hint.textContent = ‘shake your phone to shuffle — or tap the deck�
 }
 
 // Request shake permission on first user interaction with the shuffle screen
-document.addEventListener(‘DOMContentLoaded’, () => {
-// Try to attach without permission first (Android, older iOS)
-startShakeListener();
-});
 
 // iOS needs a gesture to request permission — wire to first tap anywhere on shuffle phase
 document.addEventListener(‘touchstart’, function iosTouchInit() {
