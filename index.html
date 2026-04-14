@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
@@ -10,6 +11,7 @@
 <link rel="canonical" href="https://the-arcana.netlify.app/" />
 
 <!-- Open Graph -->
+
 <meta property="og:type"         content="website" />
 <meta property="og:url"          content="https://the-arcana.netlify.app/" />
 <meta property="og:title"        content="The Arcana — Free Celtic Cross Tarot Reading" />
@@ -25,6 +27,7 @@
 <meta name="twitter:image"       content="https://the-arcana.netlify.app/og-image.png" />
 
 <!-- PWA -->
+
 <link rel="manifest" href="/manifest.json" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -33,17 +36,20 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☽</text></svg>" />
 
 <!-- Fonts -->
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 
 <!-- ✦ Stylesheet — must be present in same directory as index.html -->
+
 <link rel="stylesheet" href="styles.css" />
 
 </head>
 <body>
 
 <!-- NAV -->
+
 <nav>
   <a class="nav-brand" href="#" onclick="goHome();return false">
     <span class="nav-brand-sym">☽</span>
@@ -61,9 +67,11 @@
 </nav>
 
 <!-- PAGE: READING -->
+
 <div class="page active" id="page-reading">
 
   <!-- PHASE 1: SHUFFLE -->
+
   <div class="phase active" id="phase-shuffle">
     <div class="intro-eyebrow">Celtic Cross Spread</div>
     <h1 class="intro-title">Consult the <em>Arcana</em></h1>
@@ -83,16 +91,20 @@
       </div>
     </div>
 
-    <div class="deck-pile shake-ready" id="deckPile" onclick="doShuffle()">
-      <div class="deck-pile-card"></div>
-      <div class="deck-pile-card"></div>
-      <div class="deck-pile-card"></div>
-    </div>
-    <p class="shake-hint" id="shakeHint">shake your phone — or tap the deck</p>
-    <button class="shuffle-btn" id="shuffleBtn" onclick="doShuffle()">✦ Shuffle the Deck</button>
+```
+<div class="deck-pile shake-ready" id="deckPile" onclick="doShuffle()">
+  <div class="deck-pile-card"></div>
+  <div class="deck-pile-card"></div>
+  <div class="deck-pile-card"></div>
+</div>
+<p class="shake-hint" id="shakeHint">shake your phone — or tap the deck</p>
+<button class="shuffle-btn" id="shuffleBtn" onclick="doShuffle()">✦ Shuffle the Deck</button>
+```
+
   </div>
 
   <!-- PHASE 2: FAN -->
+
   <div class="phase" id="phase-fan">
     <div class="fan-header">
       <p class="eyebrow">Choose Your Cards</p>
@@ -110,6 +122,7 @@
   </div>
 
   <!-- PHASE 3: SPREAD + READING -->
+
   <div class="phase" id="phase-spread">
     <div class="spread-header">
       <p class="eyebrow">The Celtic Cross</p>
@@ -139,7 +152,8 @@
       </div>
       <div class="reading-box-actions">
         <button class="btn-out" onclick="doReset()">↺ New Reading</button>
-        <button class="btn-pri" onclick="shareApp()">⇪ Share This Reading</button>
+        <button class="btn-pri" onclick="shareApp()">⇪ Share Reading</button>
+        <button class="btn-out" onclick="captureReading()">◎ Save as Image</button>
       </div>
     </div>
   </div>
@@ -147,6 +161,7 @@
 </div><!-- /page-reading -->
 
 <!-- PAGE: PERSONAL -->
+
 <div class="page" id="page-personal">
   <div class="pers-wrap">
     <p class="pers-eyebrow">Deep Interpretation</p>
@@ -179,6 +194,7 @@
 </div>
 
 <!-- MODAL -->
+
 <div class="modal-ov" id="modalOv" onclick="closeModal(event)">
   <div class="modal-box">
     <div class="modal-hd">
@@ -199,8 +215,8 @@
   </div>
 </div>
 
-
 <!-- PAGE: CARD LIBRARY -->
+
 <div class="page" id="page-library">
   <div class="lib-wrap">
     <div class="lib-header">
