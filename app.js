@@ -778,18 +778,17 @@ symEl.className = ‘modal-art-sym’ + (card.id.startsWith(‘penta_’) ? ’ 
 }
 
 document.getElementById(‘modalOv’).classList.add(‘open’);
-document.body.style.overflow = ‘hidden’;
+// Do NOT set body.style.overflow — let the .scrollable class handle it.
 }
 
 function closeModal(e) {
-if (e.target === document.getElementById(‘modalOv’)) closeModalDirect();
+// iOS Safari often reports a child element as e.target on backdrop taps.
+// Close if the click did not originate inside .modal-box.
+if (!e.target.closest(’.modal-box’)) closeModalDirect();
 }
 function closeModalDirect() {
 document.getElementById(‘modalOv’).classList.remove(‘open’);
-// Restore correct scroll state: if on spread page keep it scrollable
-const onSpread = document.getElementById(‘phase-spread’) &&
-document.getElementById(‘phase-spread’).classList.contains(‘active’);
-document.body.style.overflow = onSpread ? ‘auto’ : ‘’;
+// Scroll state is handled entirely by the .scrollable class — no inline override.
 }
 
 /* ============================================================
@@ -987,7 +986,6 @@ symEl.textContent = card.symbol;
 symEl.className = ‘modal-art-sym’ + (card.id.startsWith(‘penta_’) ? ’ sym-gold’ : ‘’);
 }
 document.getElementById(‘modalOv’).classList.add(‘open’);
-document.body.style.overflow = ‘hidden’;
 }
 
 /* ============================================================
