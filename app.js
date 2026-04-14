@@ -1646,36 +1646,6 @@ const libGrid = document.getElementById(‘libGrid’);
 if (libGrid && libGrid.children.length > 0) buildLibrary();
 }
 
-/* ── Patch buildParagraph to use ZH engine when lang is zh ── */
-const _origBuildParagraph = buildParagraph;
-buildParagraph = function() {
-if (currentLang !== ‘zh’) { _origBuildParagraph(); return; }
-
-const cat      = selectedCategory || ‘general’;
-const catLabel = { general: LANG.zh.reading_general, love: LANG.zh.reading_love, wealth: LANG.zh.reading_wealth };
-document.getElementById(‘readingBoxTitle’).textContent = catLabel[cat] || LANG.zh.reading_box_title;
-document.getElementById(‘readingLoading’).style.display = ‘flex’;
-document.getElementById(‘readingPara’).innerHTML = ‘’;
-document.getElementById(‘readingBullets’).style.display = ‘none’;
-
-setTimeout(() => {
-document.getElementById(‘readingLoading’).style.display = ‘none’;
-// Hide “At a Glance” label — ZH sections have their own 【headers】
-const glanceLabel = document.getElementById(‘readingBullets’)
-.querySelector(’.reading-section-label’);
-if (glanceLabel) glanceLabel.style.display = ‘none’;
-const overview = ZH_CAT_OPEN[cat] + zhBuildOverview(assignedCards, cat) + ZH_CAT_CLOSE[cat];
-const bullets  = zhBuildBullets(assignedCards, cat);
-typeText(document.getElementById(‘readingPara’), overview, () => {
-renderBullets(bullets);
-});
-}, 900);
-};
-
-/* openModal handles ZH natively — patch removed */
-
-/* openLibModal handles language natively — no patch needed */
-
 /* ============================================================
 GESTURE SYSTEM
 Three interactions:
@@ -1988,37 +1958,6 @@ banner.textContent = ‘✦ Someone shared this reading with you’;
 header.parentNode.insertBefore(banner, header);
 }
 
-/* Patch buildSpread to write URL after spread is ready */
-const _origBuildSpread = buildSpread;
-buildSpread = function () {
-_origBuildSpread();
-pushReadingToURL();
-};
-
-/* Patch doReset to clean the URL */
-const _origDoReset = doReset;
-doReset = function () {
-_origDoReset();
-history.replaceState({}, ‘’, window.location.pathname);
-};
-
-/* Patch shareApp to always share the reading URL */
-shareApp = function () {
-const url  = window.location.href;
-const data = {
-title: ‘The Arcana — My Tarot Reading’,
-text:  ‘I drew a Celtic Cross spread ✦ See my reading:’,
-url,
-};
-if (navigator.share) {
-navigator.share(data).catch(() => {});
-} else {
-navigator.clipboard.writeText(url)
-.then(()  => showToast(‘Reading link copied ✦’))
-.catch(()  => showToast(url));
-}
-};
-
 /* ============================================================
 FEATURE 2 — CAPTURE AS IMAGE
 ─────────────────────────────────────────────────────────
@@ -2310,17 +2249,85 @@ showToast('Image saved ✦');
 }
 
 /* ============================================================
-BOOT — URL RESTORATION
-Runs after DOMContentLoaded so the DOM is ready.
-If no shared reading in URL, proceed normally.
-============================================================ */
-document.addEventListener(‘DOMContentLoaded’, () => {
-// Attempt to restore a shared reading from the URL
-const restored = restoreReadingFromURL();
-// Normal init always runs regardless
+BOOT — single DOMContentLoaded, guaranteed execution order:
+
+1. Apply patches (all function reassignments happen here,
+   after every function is defined and hoisted)
+1. Init UI state
+1. Restore shared reading from URL if present
+   ============================================================ */
+   document.addEventListener(‘DOMContentLoaded’, () => {
+
+/* ── PATCH 1: buildParagraph — ZH engine ── */
+const _origBuildParagraph = buildParagraph;
+buildParagraph = function () {
+if (currentLang !== ‘zh’) { _origBuildParagraph(); return; }
+const cat      = selectedCategory || ‘general’;
+const catLabel = {
+general: LANG.zh.reading_general,
+love:    LANG.zh.reading_love,
+wealth:  LANG.zh.reading_wealth
+};
+document.getElementById(‘readingBoxTitle’).textContent =
+catLabel[cat] || LANG.zh.reading_box_title;
+document.getElementById(‘readingLoading’).style.display = ‘flex’;
+document.getElementById(‘readingPara’).innerHTML        = ‘’;
+document.getElementById(‘readingBullets’).style.display = ‘none’;
+setTimeout(() => {
+document.getElementById(‘readingLoading’).style.display = ‘none’;
+const gl = document.querySelector(’#readingBullets .reading-section-label’);
+if (gl) gl.style.display = ‘none’;
+const overview = ZH_CAT_OPEN[cat] +
+zhBuildOverview(assignedCards, cat) +
+ZH_CAT_CLOSE[cat];
+const bullets  = zhBuildBullets(assignedCards, cat);
+typeText(document.getElementById(‘readingPara’), overview, () => {
+renderBullets(bullets);
+});
+}, 900);
+};
+
+/* ── PATCH 2: buildSpread — push URL after spread built ── */
+const _origBuildSpread = buildSpread;
+buildSpread = function () {
+_origBuildSpread();
+pushReadingToURL();
+};
+
+/* ── PATCH 3: doReset — clear URL on reset ── */
+const _origDoReset = doReset;
+doReset = function () {
+_origDoReset();
+history.replaceState({}, ‘’, window.location.pathname);
+};
+
+/* ── PATCH 4: shareApp — always share the reading URL ── */
+shareApp = function () {
+const url  = window.location.href;
+const data = {
+title: ‘The Arcana — My Tarot Reading’,
+text:  ‘I drew a Celtic Cross spread ✦ See my reading:’,
+url,
+};
+if (navigator.share) {
+navigator.share(data).catch(() => {});
+} else {
+navigator.clipboard.writeText(url)
+.then(()  => showToast(‘Reading link copied ✦’))
+.catch(()  => showToast(url));
+}
+};
+
+/* ── INIT ── */
 setupTheme();
 selectCategory(‘general’);
 applyLang();
 startShakeListener();
-if (‘serviceWorker’ in navigator) navigator.serviceWorker.register(’/sw.js’).catch(() => {});
+if (‘serviceWorker’ in navigator) {
+navigator.serviceWorker.register(’/sw.js’).catch(() => {});
+}
+
+/* ── RESTORE shared reading from URL (runs last) ── */
+restoreReadingFromURL();
+
 });
